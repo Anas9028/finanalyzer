@@ -2252,6 +2252,9 @@ Immediate Recommendations:
 csrf.exempt(export_comparison_pdf)
 csrf.exempt(analysis_chat)
 
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
