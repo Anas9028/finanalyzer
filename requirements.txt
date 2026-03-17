@@ -1,12 +1,4 @@
 flask
-flask-sqlalchemy
-flask-bcrypt
-flask-wtf
-flask-limiter
-markupsafe
-werkzeug
 pandas
 openpyxl
-gunicorn
-groq
-reportlab
+bcrypt
