@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company.name }} - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .company-header {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1976D2;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            color: white;
+        }
+
+        .btn-warning-custom {
+            background: linear-gradient(135deg, #F57C00, #E65100);
+            color: white;
+        }
+
+        .btn-danger-custom {
+            background: linear-gradient(135deg, #C62828, #B71C1C);
+            color: white;
+        }
+
+        .data-item {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #1976D2;
+            transition: all 0.3s ease;
+        }
+
+        .data-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .analysis-item {
+            background: linear-gradient(135deg, #E8F5E9, #ffffff);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #2E7D32;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .analysis-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #9e9e9e;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-custom {
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .admin-actions {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-left: 4px solid #F57C00;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-actions h6 {
+            color: #E65100;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-group-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .upload-btn-large {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+
+        .upload-btn-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.4);
+            color: white;
+        }
+
+        .user-info-box {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-left: 4px solid #1976D2;
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Health Score Chart ── */
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+        }
+
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .score-badge.excellent { background: #E8F5E9; color: #2E7D32; }
+        .score-badge.good      { background: #E3F2FD; color: #1565C0; }
+        .score-badge.fair      { background: #FFF8E1; color: #F57F17; }
+        .score-badge.poor      { background: #FFEBEE; color: #B71C1C; }
+
+        .chart-legend-dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .no-chart-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: #9e9e9e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="company-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-building"></i> {{ company.name }}</h1>
+                    <p class="mb-2 mt-3">
+                        <i class="bi bi-tag"></i> <strong>Industry:</strong> {{ company.industry or 'Not specified' }}
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-calendar-plus"></i> <strong>Created:</strong>
+                        {{ company.created_at.strftime('%B %d, %Y') if company.created_at else 'N/A' }}
+                    </p>
+                    {% if company.description %}
+                    <p class="mb-0">
+                        <i class="bi bi-info-circle"></i> {{ company.description }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if can_upload %}
+                    <a href="/company/{{ company.id }}/upload" class="upload-btn-large">
+                        <i class="bi bi-cloud-upload-fill"></i>
+                        Upload Data
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- User Info Box — role-specific access summary -->
+        {% if user.is_financial_analyst() %}
+        <div class="user-info-box" style="border-left-color:#1976D2;">
+            <h6><i class="bi bi-bar-chart-fill"></i> <strong>Your Access — Financial Analyst</strong></h6>
+            <p class="mb-0">
+                You can <strong>upload Excel files</strong>, run financial analysis, view reports, compare periods, and export PDF reports for this company.
+            </p>
+        </div>
+        {% elif user.is_auditor() %}
+        <div class="user-info-box" style="border-left-color:#795548;">
+            <h6><i class="bi bi-search"></i> <strong>Your Access — Auditor</strong></h6>
+            <p class="mb-0">
+                You have <strong>read-only</strong> access. You can view analyses, financial ratios, the audit log, and export PDF reports. You cannot upload or modify data.
+            </p>
+        </div>
+        {% elif user.is_company_manager() %}
+        <div class="user-info-box" style="border-left-color:#2E7D32;">
+            <h6><i class="bi bi-building"></i> <strong>Your Access — Company Manager</strong></h6>
+            <p class="mb-0">
+                You can <strong>view analyses and reports</strong>, assign users to this company, and manage your team. Financial data upload is handled by Financial Analysts.
+            </p>
+        </div>
+        {% elif user.is_developer() %}
+        <div class="user-info-box" style="border-left-color:#7b1fa2;">
+            <h6><i class="bi bi-code-slash"></i> <strong>Your Access — Developer</strong></h6>
+            <p class="mb-0">
+                You manage the <strong>system structure</strong> — companies, users, and assignments. Financial analysis and reports are restricted to assigned company users.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- ══════════════════════════════════════════
+             Health Score History Chart
+             Requires: analyses list with ai_analysis.overall.health_score
+             ══════════════════════════════════════════ -->
+        {% if analyses and analyses|length > 0 and can_view_analysis %}
+        <div class="chart-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="section-title mb-0">
+                    <i class="bi bi-activity"></i> Health Score History
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="chart-legend-dot" style="background:#1976D2;"></span>
+                    <small class="text-muted fw-semibold">Score / 100</small>
+                </div>
+            </div>
+
+            {% set score_values = [] %}
+            {% for a in analyses|reverse %}
+                {% set s = a.ai_analysis.get('overall', {}).get('health_score', None) %}
+                {% if s is not none %}
+                    {% set _ = score_values.append(s) %}
+                {% endif %}
+            {% endfor %}
+
+            {% if score_values|length >= 1 %}
+                <!-- Summary strip -->
+                <div class="d-flex gap-3 flex-wrap mb-3">
+                    {% set latest = score_values[-1] %}
+                    {% set label  = 'Excellent' if latest >= 80 else ('Good' if latest >= 60 else ('Fair' if latest >= 40 else 'Poor')) %}
+                    {% set cls    = 'excellent' if latest >= 80 else ('good' if latest >= 60 else ('fair' if latest >= 40 else 'poor')) %}
+                    <span class="score-badge {{ cls }}">
+                        <i class="bi bi-stars"></i> Latest: {{ latest }}/100 — {{ label }}
+                    </span>
+                    {% if score_values|length >= 2 %}
+                        {% set diff = score_values[-1] - score_values[-2] %}
+                        {% if diff > 0 %}
+                        <span class="score-badge good"><i class="bi bi-arrow-up-circle-fill"></i> +{{ diff }} vs previous</span>
+                        {% elif diff < 0 %}
+                        <span class="score-badge poor"><i class="bi bi-arrow-down-circle-fill"></i> {{ diff }} vs previous</span>
+                        {% else %}
+                        <span class="score-badge fair"><i class="bi bi-dash-circle"></i> No change</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="healthScoreChart"></canvas>
+                </div>
+
+                <!-- Pass data to JS via a data attribute -->
+                <div id="chartDataStore"
+                     data-labels='{{ analyses|reverse|map(attribute="created_at")|map("string")|list|tojson }}'
+                     data-scores='{{ score_values|tojson }}'
+                     style="display:none;">
+                </div>
+
+            {% else %}
+                <div class="no-chart-state">
+                    <i class="bi bi-bar-chart fs-1"></i>
+                    <p class="mt-2 mb-0">No health score data available yet.</p>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Admin Actions Section (Only for Admins) -->
+        {% if user.is_developer() %}
+        <div class="admin-actions">
+            <h6><i class="bi bi-shield-lock"></i> Administrator Actions</h6>
+            <div class="btn-group-actions">
+                <a href="/company/{{ company.id }}/edit" class="btn btn-action btn-warning-custom">
+                    <i class="bi bi-pencil-square"></i> Edit Company
+                </a>
+                <a href="/admin/company/{{ company.id }}/assign" class="btn btn-action btn-primary-custom">
+                    <i class="bi bi-person-plus"></i> Assign Users
+                </a>
+                <button class="btn btn-action btn-danger-custom" onclick="confirmDelete()">
+                    <i class="bi bi-trash"></i> Delete Company
+                </button>
+            </div>
+            <small class="text-muted d-block mt-2">
+                <i class="bi bi-info-circle"></i> As a Developer, you manage companies and users.
+            </small>
+        </div>
+        {% elif user.is_company_manager() %}
+        <div class="admin-actions">
+            <h6><i class="bi bi-building"></i> Manager Actions</h6>
+            <div class="btn-group-actions">
+                <a href="/admin/company/{{ company.id }}/assign" class="btn btn-action btn-primary-custom">
+                    <i class="bi bi-person-plus"></i> Assign Users
+                </a>
+            </div>
+            <small class="text-muted d-block mt-2">
+                <i class="bi bi-info-circle"></i> You can assign users to this company. Financial data upload is done by Financial Analysts.
+            </small>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Financial Data Section -->
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5 class="section-title">
+                        <i class="bi bi-file-earmark-spreadsheet"></i> Financial Data Periods
+                    </h5>
+
+                    {% if financial_data %}
+                        {% for data in financial_data %}
+                        <div class="data-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-calendar-range"></i>
+                                        {{ data.period_start.strftime('%Y-%m-%d') }} to {{ data.period_end.strftime('%Y-%m-%d') }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i>
+                                        Uploaded: {{ data.uploaded_at.strftime('%Y-%m-%d %H:%M') if data.uploaded_at else 'N/A' }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-primary badge-custom">
+                                    {{ data.analyses|length }} Analysis
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5>No Financial Data</h5>
+                            <p class="text-muted">
+                                {% if user.is_developer() %}
+                                No data uploaded yet. Assigned users can upload financial statements.
+                                {% else %}
+                                Upload financial statements to get started with analysis
+                                {% endif %}
+                            </p>
+                            {% if can_view_analysis %}
+                            <a href="/company/{{ company.id }}/upload" class="btn btn-primary-custom">
+                                <i class="bi bi-cloud-upload"></i> Upload Now
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Analyses Section -->
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5 class="section-title">
+                        <i class="bi bi-graph-up-arrow"></i> Financial Analyses
+                    </h5>
+
+                    {% if analyses %}
+                        {% for analysis in analyses %}
+                        <div class="analysis-item" onclick="window.location.href='/analysis/{{ analysis.id }}'">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-file-bar-graph"></i>
+                                        Analysis #{{ analysis.id }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i>
+                                        {{ analysis.created_at.strftime('%B %d, %Y at %H:%M') if analysis.created_at else 'N/A' }}
+                                    </small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-success badge-custom">
+                                            Health Score: {{ analysis.ai_analysis.get('overall', {}).get('health_score', 'N/A') }}/100
+                                        </span>
+                                        <span class="badge bg-warning text-dark badge-custom">
+                                            Risk: {{ analysis.ai_analysis.get('overall', {}).get('risk_level', 'N/A') }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right fs-4 text-success"></i>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-graph-up"></i>
+                            <h5>No Analyses Yet</h5>
+                            <p class="text-muted">
+                                {% if user.is_developer() %}
+                                No analyses generated yet
+                                {% else %}
+                                Upload financial data to generate analyses
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        {% if can_upload or can_view_analysis %}
+        <div class="info-card">
+            <h5 class="section-title">
+                <i class="bi bi-lightning-charge"></i> Quick Actions
+            </h5>
+            <div class="row text-center">
+                {% if can_upload %}
+                <div class="col-md-4">
+                    <a href="/company/{{ company.id }}/upload" class="text-decoration-none">
+                        <div class="p-3">
+                            <i class="bi bi-cloud-upload fs-1 text-success"></i>
+                            <p class="mt-2 mb-0 fw-bold">Upload Data</p>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+                {% if can_view_analysis %}
+                <div class="col-md-4">
+                    <a href="/compare?company={{ company.id }}" class="text-decoration-none">
+                        <div class="p-3">
+                            <i class="bi bi-bar-chart-steps fs-1 text-primary"></i>
+                            <p class="mt-2 mb-0 fw-bold">Compare Periods</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="#" onclick="viewLatestAnalysis(); return false;" class="text-decoration-none">
+                        <div class="p-3">
+                            <i class="bi bi-file-earmark-bar-graph fs-1 text-warning"></i>
+                            <p class="mt-2 mb-0 fw-bold">View Latest</p>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    {% if user.is_developer() %}
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle"></i> Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3"><strong>⚠️ Warning: This action cannot be undone!</strong></p>
+                    <p>You are about to delete <strong>{{ company.name }}</strong>.</p>
+                    <p>This will permanently delete:</p>
+                    <ul>
+                        <li>✗ All financial data ({{ financial_data|length }} periods)</li>
+                        <li>✗ All analyses ({{ analyses|length }} reports)</li>
+                        <li>✗ All associated records</li>
+                    </ul>
+                    <div class="alert alert-danger">
+                        <i class="bi bi-shield-exclamation"></i>
+                        <strong>Type the company name to confirm:</strong>
+                        <input type="text" id="confirmInput" class="form-control mt-2" placeholder="Enter company name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="executeDelete()" id="deleteBtn" disabled>
+                        <i class="bi bi-trash"></i> Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const companyName = "{{ company.name }}";
+        const companyId = {{ company.id }};
+        const isDeveloper = {{ 'true' if user.is_developer() else 'false' }};
+        const isAdmin = isDeveloper;
+
+        function confirmDelete() {
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        // Enable delete button only when company name matches
+        const confirmInput = document.getElementById('confirmInput');
+        if (confirmInput) {
+            confirmInput.addEventListener('input', function() {
+                const deleteBtn = document.getElementById('deleteBtn');
+                if (this.value === companyName) {
+                    deleteBtn.disabled = false;
+                } else {
+                    deleteBtn.disabled = true;
+                }
+            });
+        }
+
+        function executeDelete() {
+            const confirmInput = document.getElementById('confirmInput').value;
+
+            if (confirmInput !== companyName) {
+                alert('❌ Company name does not match. Deletion cancelled.');
+                return;
+            }
+
+            // Show loading state
+            const deleteBtn = document.getElementById('deleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+
+            // Perform deletion
+            window.location.href = '/company/' + companyId + '/delete';
+        }
+
+        function viewLatestAnalysis() {
+            {% if analyses %}
+            window.location.href = '/analysis/{{ analyses[0].id }}';
+            {% else %}
+            alert('ℹ️ No analyses available yet. Upload financial data first.');
+            {% endif %}
+        }
+
+        // Animation on load
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.info-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Log current user permissions
+        console.log('👤 User permissions:');
+        console.log('   Is Admin:', isAdmin);
+        console.log('   Company:', companyName);
+        console.log('   Can Upload:', !isAdmin);
+        // ── Health Score History Chart ────────────────
+        (function () {
+            const store = document.getElementById('healthScoreChart');
+            if (!store) return;
+
+            const dataEl  = document.getElementById('chartDataStore');
+            const rawLabels = JSON.parse(dataEl.dataset.labels  || '[]');
+            const scores    = JSON.parse(dataEl.dataset.scores  || '[]');
+
+            // Format datetime strings to readable labels
+            const labels = rawLabels.map(d => {
+                try {
+                    const dt = new Date(d);
+                    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                } catch (e) { return d; }
+            });
+
+            if (!scores.length) return;
+
+            // Colour each point by score band
+            const pointColors = scores.map(s =>
+                s >= 80 ? '#2E7D32' :
+                s >= 60 ? '#1976D2' :
+                s >= 40 ? '#F57C00' : '#C62828'
+            );
+
+            // Gradient fill
+            const ctx  = store.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 0, 280);
+            grad.addColorStop(0,   'rgba(25, 118, 210, 0.25)');
+            grad.addColorStop(1,   'rgba(25, 118, 210, 0.00)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Health Score',
+                        data: scores,
+                        fill: true,
+                        backgroundColor: grad,
+                        borderColor: '#1976D2',
+                        borderWidth: 3,
+                        pointBackgroundColor: pointColors,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 7,
+                        pointHoverRadius: 10,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const v = ctx.parsed.y;
+                                    const tag = v >= 80 ? '🟢 Excellent'
+                                              : v >= 60 ? '🔵 Good'
+                                              : v >= 40 ? '🟡 Fair'
+                                              :            '🔴 Poor';
+                                    return ` Score: ${v}/100  ${tag}`;
+                                }
+                            },
+                            backgroundColor: 'rgba(15,30,60,0.85)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            cornerRadius: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                stepSize: 20,
+                                callback: v => v + '/100',
+                                color: '#757575'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#757575', maxRotation: 30 }
+                        }
+                    },
+                    animation: {
+                        duration: 900,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        })();
+        // ─────────────────────────────────────────────
+    </script>
+</body>
+</html>

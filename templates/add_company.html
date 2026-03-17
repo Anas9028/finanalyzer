@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Company - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+            text-align: center;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1976D2;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 3px solid #2E7D32;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .section-title i {
+            font-size: 1.5rem;
+            color: #2E7D32;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #424242;
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-label i {
+            color: #1976D2;
+        }
+
+        .required-star {
+            color: #d32f2f;
+            margin-left: 4px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            padding: 0.9rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #1976D2;
+            box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            border: none;
+            color: white;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
+        }
+
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-left: 4px solid #F57C00;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .info-box i {
+            font-size: 2rem;
+            color: #F57C00;
+        }
+
+        .info-box-content strong {
+            color: #E65100;
+            font-size: 1.1rem;
+        }
+
+        .user-selection-box {
+            border: 3px solid #1976D2;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            max-height: 450px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #E3F2FD, #ffffff);
+        }
+
+        .user-selection-box::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .user-selection-box::-webkit-scrollbar-track {
+            background: #E3F2FD;
+            border-radius: 10px;
+        }
+
+        .user-selection-box::-webkit-scrollbar-thumb {
+            background: #1976D2;
+            border-radius: 10px;
+        }
+
+        .user-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-option:hover {
+            border-color: #2E7D32;
+            background: linear-gradient(135deg, #E8F5E9, #ffffff);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+        }
+
+        .user-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #2E7D32;
+        }
+
+        .user-option label {
+            cursor: pointer;
+            margin: 0;
+            font-weight: 600;
+            color: #424242;
+            flex: 1;
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #1976D2;
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+
+        .search-box input {
+            padding-left: 3rem;
+        }
+
+        .alert {
+            border-radius: 16px;
+            padding: 2rem;
+            border: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+        }
+
+        .alert-danger h5 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert .btn {
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .page-header h2 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <a href="/dashboard" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="page-header">
+            <h2><i class="bi bi-building-add"></i> Add New Company</h2>
+            <p>Create a new company profile and assign to a user</p>
+        </div>
+
+        <div class="info-box">
+            <i class="bi bi-info-circle-fill"></i>
+            <div class="info-box-content">
+                <strong>Important Notice:</strong> Every company must be linked to an existing user account in the system.
+            </div>
+        </div>
+
+        {% if not users %}
+        <div class="alert alert-danger text-center">
+            <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h5>No Users Available</h5>
+            <p>You need to create at least one user account before adding companies to the system.</p>
+            <a href="/admin/users/add" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Create User Account
+            </a>
+        </div>
+        {% else %}
+
+        <div class="form-card">
+            <form method="POST" action="/company/add">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <!-- Company Basic Information -->
+                <div class="section-title">
+                    <i class="bi bi-building"></i>
+                    Company Information
+                </div>
+
+                <div class="mb-4">
+                    <label for="company_name" class="form-label">
+                        <i class="bi bi-building-fill"></i>
+                        Company Name
+                        <span class="required-star">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="company_name"
+                           name="company_name" placeholder="Enter the full company name" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="industry" class="form-label">
+                        <i class="bi bi-briefcase-fill"></i>
+                        Industry Sector
+                        <span class="required-star">*</span>
+                    </label>
+                    <select class="form-select" id="industry" name="industry" required>
+                        <option value="">Select industry sector...</option>
+                        <optgroup label="Manufacturing & Production">
+                            <option value="Manufacturing">Manufacturing & Production</option>
+                            <option value="Automotive">Automotive Industry</option>
+                            <option value="Chemicals">Chemical Industry</option>
+                            <option value="Food & Beverage">Food & Beverage</option>
+                            <option value="Textiles">Textiles & Apparel</option>
+                            <option value="Construction Materials">Construction Materials</option>
+                        </optgroup>
+                        <optgroup label="Technology & Communication">
+                            <option value="Technology">Information Technology</option>
+                            <option value="Software Development">Software Development</option>
+                            <option value="Telecommunications">Telecommunications</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="Digital Marketing">Digital Marketing</option>
+                            <option value="AI & Machine Learning">AI & Machine Learning</option>
+                        </optgroup>
+                        <optgroup label="Finance & Business">
+                            <option value="Finance">Financial Services</option>
+                            <option value="Banking">Banking</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Investment">Investment</option>
+                            <option value="Accounting">Accounting & Auditing</option>
+                            <option value="Consulting">Business Consulting</option>
+                        </optgroup>
+                        <optgroup label="Trade & Services">
+                            <option value="Retail">Retail</option>
+                            <option value="Wholesale">Wholesale Trade</option>
+                            <option value="Real Estate">Real Estate</option>
+                            <option value="Hospitality">Hospitality & Hotels</option>
+                            <option value="Tourism">Tourism & Travel</option>
+                            <option value="Restaurants">Restaurants & Cafes</option>
+                        </optgroup>
+                        <optgroup label="Healthcare & Education">
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Pharmaceuticals">Pharmaceuticals</option>
+                            <option value="Medical Equipment">Medical Equipment</option>
+                            <option value="Education">Education</option>
+                            <option value="Training">Training & Development</option>
+                        </optgroup>
+                        <optgroup label="Energy & Environment">
+                            <option value="Energy">Energy</option>
+                            <option value="Renewable Energy">Renewable Energy</option>
+                            <option value="Oil & Gas">Oil & Gas</option>
+                            <option value="Environmental Services">Environmental Services</option>
+                        </optgroup>
+                        <optgroup label="Transportation & Logistics">
+                            <option value="Transportation">Transportation</option>
+                            <option value="Logistics">Logistics & Supply Chain</option>
+                            <option value="Shipping">Shipping & Maritime</option>
+                            <option value="Aviation">Aviation</option>
+                        </optgroup>
+                        <optgroup label="Media & Entertainment">
+                            <option value="Media">Media & Broadcasting</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Advertising">Advertising</option>
+                            <option value="Publishing">Publishing & Printing</option>
+                        </optgroup>
+                        <optgroup label="Agriculture & Resources">
+                            <option value="Agriculture">Agriculture</option>
+                            <option value="Livestock">Livestock</option>
+                            <option value="Fishing">Fishing & Aquaculture</option>
+                            <option value="Mining">Mining & Extraction</option>
+                        </optgroup>
+                        <optgroup label="Other Sectors">
+                            <option value="Government">Government & Public Sector</option>
+                            <option value="NGO">Non-Profit Organizations</option>
+                            <option value="Legal Services">Legal Services</option>
+                            <option value="Security Services">Security Services</option>
+                            <option value="Other">Other</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="description" class="form-label">
+                        <i class="bi bi-card-text"></i>
+                        Company Description
+                    </label>
+                    <textarea class="form-control" id="description" name="description"
+                              placeholder="Enter a brief description of the company and its business activities (optional)"></textarea>
+                </div>
+
+                <!-- User Assignment -->
+                <div class="section-title mt-5">
+                    <i class="bi bi-person-check"></i>
+                    Assign Responsible User
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-people-fill"></i>
+                        Select User Account
+                        <span class="required-star">*</span>
+                    </label>
+
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" class="form-control" id="searchBox"
+                               placeholder="Search by name or username...">
+                    </div>
+
+                    <div class="user-selection-box" id="usersList">
+                        {% for user in users %}
+                        <label class="user-option">
+                            <input type="radio" name="assigned_user" value="{{ user.id }}" required>
+                            <div>
+                                <i class="bi bi-person-circle"></i>
+                                <strong>{{ user.full_name }}</strong>
+                                <span style="color: #666;">({{ user.username }})</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Create Company
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality - only initialize if elements exist
+        document.addEventListener('DOMContentLoaded', function() {
+            var searchBox = document.getElementById('searchBox');
+            var usersList = document.getElementById('usersList');
+
+            // Only add event listener if both elements exist
+            if (searchBox && usersList) {
+                searchBox.addEventListener('input', function() {
+                    var searchTerm = this.value.toLowerCase();
+                    var options = usersList.querySelectorAll('.user-option');
+
+                    options.forEach(function(option) {
+                        var text = option.textContent.toLowerCase();
+                        if (text.indexOf(searchTerm) > -1) {
+                            option.style.display = '';
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+
+        // Animation on page load
+        window.addEventListener('load', function() {
+            const formCard = document.querySelector('.form-card');
+            if (formCard) {
+                formCard.style.opacity = '0';
+                formCard.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    formCard.style.transition = 'all 0.6s ease';
+                    formCard.style.opacity = '1';
+                    formCard.style.transform = 'translateY(0)';
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

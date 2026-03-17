@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #424242;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            padding: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: 2px solid #e0e0e0;
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: #667eea;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 0.9rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem;
+        }
+
+        .user-info-badge {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #1976D2;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6b7280;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #667eea;
+        }
+
+        .helper-text {
+            font-size: 0.875rem;
+            color: #757575;
+            margin-top: 0.25rem;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #c62828);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <a href="/admin/users" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Back to Users
+            </a>
+
+            <div class="page-header">
+                <h2><i class="bi bi-pencil-square"></i> Edit User</h2>
+                <p class="mb-0 mt-2">Update user information and permissions</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="user-info-badge">
+                <strong><i class="bi bi-info-circle"></i> Current User:</strong> {{ user.username }}
+                <br>
+                <small class="text-muted">User ID: #{{ user.id }} | Created: {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</small>
+            </div>
+
+            <div class="form-card">
+                <form method="POST" action="/admin/users/edit/{{ user.id }}" id="editForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="bi bi-person-badge"></i> Personal Information
+                        </h5>
+
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="bi bi-person"></i> Full Name
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name"
+                                   value="{{ user.full_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="bi bi-envelope"></i> Email Address
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-at"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ user.email }}" required>
+                            </div>
+                            <div class="helper-text">Used for notifications and password recovery</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="bi bi-person-circle"></i> Username
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person-badge"></i>
+                                </span>
+                                <input type="text" class="form-control" id="username" name="username"
+                                       value="{{ user.username }}" required pattern="[a-zA-Z0-9_]{3,20}">
+                            </div>
+                            <div class="helper-text">3-20 characters, letters, numbers, and underscores only</div>
+                        </div>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="bi bi-shield-lock"></i> Change Password (Optional)
+                        </h5>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            Leave password fields empty to keep the current password unchanged.
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">
+                                <i class="bi bi-key"></i> New Password
+                            </label>
+                            <div class="input-group position-relative">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="new_password" name="new_password"
+                                       placeholder="Enter new password (leave empty to keep current)" minlength="6">
+                                <span class="password-toggle" onclick="togglePassword('new_password')" role="button">
+                                    <i class="bi bi-eye" id="toggleIconNew"></i>
+                                </span>
+                            </div>
+                            <div class="helper-text">Minimum 6 characters</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">
+                                <i class="bi bi-check-circle"></i> Confirm New Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" class="form-control" id="confirm_password"
+                                       placeholder="Confirm new password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role & Permissions -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="bi bi-shield-check"></i> Role & Permissions
+                        </h5>
+
+                        <div class="mb-3">
+                            <label for="role" class="form-label">
+                                <i class="bi bi-person-badge"></i> User Role
+                            </label>
+                            <select class="form-select" id="role" name="role" required onchange="updateRoleInfo()">
+                                {% if session.get('role') == 'developer' %}
+                                <option value="developer" {% if user.role == 'developer' %}selected{% endif %}>👑 Developer — Full system access</option>
+                                <option value="company_manager" {% if user.role == 'company_manager' %}selected{% endif %}>🏢 Company Manager — Manage assigned companies & users</option>
+                                {% endif %}
+                                <option value="financial_analyst" {% if user.role == 'financial_analyst' %}selected{% endif %}>📊 Financial Analyst — Upload data & run analysis</option>
+                                <option value="auditor" {% if user.role == 'auditor' %}selected{% endif %}>🔍 Auditor — Read-only + export reports</option>
+                            </select>
+                            <div class="helper-text mt-2">Current role: <strong>{{ user.get_role_display() }}</strong></div>
+                        </div>
+
+                        <div id="roleInfoBox" class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <span id="roleInfoText">Changing the role will immediately affect what this user can do.</span>
+                        </div>
+
+                        {% if user.role == 'developer' %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Warning:</strong> This user is a Developer. Changing their role will remove full system access.
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-submit">
+                            <i class="bi bi-check-circle-fill"></i> Update User Information
+                        </button>
+                        <a href="/admin/users" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        {% if not user.is_admin or (user.is_admin and total_admins > 1) %}
+                        <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                            <i class="bi bi-trash"></i> Delete User
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const toggleIcon = document.getElementById('toggleIcon' + (fieldId === 'new_password' ? 'New' : ''));
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
+        }
+
+        // Form validation
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const username = document.getElementById('username').value;
+
+            // Check password match if password is being changed
+            if (newPassword || confirmPassword) {
+                if (newPassword !== confirmPassword) {
+                    e.preventDefault();
+                    alert('New passwords do not match!');
+                    return false;
+                }
+
+                if (newPassword.length < 6) {
+                    e.preventDefault();
+                    alert('Password must be at least 6 characters long.');
+                    return false;
+                }
+            }
+
+            // Validate username
+            const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+            if (!usernameRegex.test(username)) {
+                e.preventDefault();
+                alert('Username must be 3-20 characters and contain only letters, numbers, and underscores.');
+                return false;
+            }
+
+            return true;
+        });
+
+        const roleDescriptions = {
+            'developer': '<strong>Developer:</strong> Full system access — manage all companies, users, database, and settings.',
+            'company_manager': '<strong>Company Manager:</strong> Manages assigned companies, adds analysts/auditors, views reports and activity logs.',
+            'financial_analyst': '<strong>Financial Analyst:</strong> Uploads Excel files, runs financial analysis, exports PDF reports.',
+            'auditor': '<strong>Auditor:</strong> Read-only access — views reports, ratios, audit log, exports PDFs. Cannot modify anything.'
+        };
+        function updateRoleInfo() {
+            const role = document.getElementById('role').value;
+            const box = document.getElementById('roleInfoBox');
+            const text = document.getElementById('roleInfoText');
+            if (role && roleDescriptions[role]) {
+                text.innerHTML = roleDescriptions[role];
+                box.className = 'alert alert-' + (role === 'developer' ? 'warning' : role === 'auditor' ? 'secondary' : 'info');
+            }
+        }
+        function confirmDelete() {
+            if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                window.location.href = '/admin/users/delete/{{ user.id }}';
+            }
+        }
+
+        // Real-time username validation
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value;
+            const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+
+            if (username.length > 0 && !usernameRegex.test(username)) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Email validation
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (email.length > 0 && !emailRegex.test(email)) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Add animation on page load
+        window.addEventListener('load', function() {
+            const formCard = document.querySelector('.form-card');
+            formCard.style.opacity = '0';
+            formCard.style.transform = 'translateY(30px)';
+
+            setTimeout(() => {
+                formCard.style.transition = 'all 0.6s ease';
+                formCard.style.opacity = '1';
+                formCard.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

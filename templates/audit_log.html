@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Log - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --primary-light: #3949ab;
+            --accent: #ff6f00;
+            --success: #2e7d32;
+            --danger: #c62828;
+            --warning: #f57f17;
+            --info: #01579b;
+            --surface: #ffffff;
+            --bg: #f0f2f5;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        /* ── Page Header ─────────────────────────────── */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border-radius: 20px;
+            padding: 2rem 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(26,35,126,.35);
+        }
+
+        .page-header h2 { font-weight: 700; margin: 0; }
+        .page-header .subtitle { opacity: .85; margin-top: .4rem; margin-bottom: 0; }
+
+        /* ── Stats Cards ─────────────────────────────── */
+        .stats-row { margin-bottom: 1.8rem; }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 1.4rem 1.6rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,.07);
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            height: 100%;
+        }
+
+        .stat-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+        }
+
+        .stat-icon.blue   { background:#e8eaf6; color: var(--primary); }
+        .stat-icon.orange { background:#fff3e0; color: var(--accent); }
+        .stat-icon.green  { background:#e8f5e9; color: var(--success); }
+        .stat-icon.red    { background:#ffebee; color: var(--danger); }
+
+        .stat-value { font-size: 1.7rem; font-weight: 700; line-height: 1; }
+        .stat-label { font-size: .82rem; color: #757575; margin-top: .2rem; }
+
+        /* ── Filter Card ─────────────────────────────── */
+        .filter-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,.07);
+            margin-bottom: 1.8rem;
+        }
+
+        .filter-card h6 {
+            font-weight: 700; color: var(--primary);
+            display: flex; align-items: center; gap: .5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            font-size: .9rem;
+            transition: border-color .2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 .2rem rgba(57,73,171,.15);
+        }
+
+        .btn-filter {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: none; color: white;
+            border-radius: 10px; font-weight: 600;
+            padding: .5rem 1.4rem;
+        }
+
+        .btn-filter:hover { opacity: .9; color: white; }
+
+        .btn-reset {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px; font-weight: 600;
+            padding: .5rem 1.4rem; background: white; color: #555;
+        }
+
+        .btn-reset:hover { background: #f5f5f5; }
+
+        .btn-export {
+            background: linear-gradient(135deg, #2e7d32, #388e3c);
+            border: none; color: white;
+            border-radius: 10px; font-weight: 600;
+            padding: .5rem 1.4rem;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: .4rem;
+        }
+
+        .btn-export:hover { opacity: .9; color: white; }
+
+        /* ── Table Card ──────────────────────────────── */
+        .table-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,.07);
+        }
+
+        .table-card h6 {
+            font-weight: 700; color: #424242;
+            display: flex; align-items: center; gap: .5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .table { font-size: .88rem; }
+
+        .table thead tr {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+
+        .table thead th {
+            border: none; padding: .85rem .9rem; font-weight: 600;
+        }
+
+        .table tbody tr { transition: background .15s; }
+        .table tbody tr:hover { background: #f5f7ff; }
+        .table td { vertical-align: middle; padding: .7rem .9rem; border-color: #f0f0f0; }
+
+        /* ── Action Badges ───────────────────────────── */
+        .badge-action {
+            padding: .28rem .7rem; border-radius: 8px;
+            font-size: .76rem; font-weight: 700; letter-spacing: .3px;
+            white-space: nowrap;
+        }
+
+        .badge-login       { background:#e8f5e9; color:#1b5e20; }
+        .badge-logout      { background:#ede7f6; color:#4527a0; }
+        .badge-upload      { background:#e3f2fd; color:#0d47a1; }
+        .badge-add         { background:#e8f5e9; color:#1b5e20; }
+        .badge-edit        { background:#fff3e0; color:#e65100; }
+        .badge-delete      { background:#ffebee; color:#b71c1c; }
+        .badge-assign      { background:#e0f7fa; color:#006064; }
+        .badge-unassign    { background:#fce4ec; color:#880e4f; }
+        .badge-download    { background:#f3e5f5; color:#4a148c; }
+        .badge-export      { background:#e8eaf6; color:#1a237e; }
+        .badge-default     { background:#f5f5f5; color:#424242; }
+
+        /* ── Entity Badges ───────────────────────────── */
+        .badge-entity {
+            padding: .2rem .6rem; border-radius: 6px;
+            font-size: .75rem; font-weight: 600;
+        }
+
+        .badge-company  { background:#e3f2fd; color:#01579b; }
+        .badge-user     { background:#f3e5f5; color:#4a148c; }
+        .badge-analysis { background:#e8f5e9; color:#1b5e20; }
+        .badge-auditlog { background:#fff3e0; color:#e65100; }
+
+        /* ── Back button ─────────────────────────────── */
+        .btn-back {
+            background: #6c757d; border: none; color: white;
+            padding: .55rem 1.4rem; border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: .5rem;
+            margin-bottom: 1rem; transition: all .3s;
+        }
+
+        .btn-back:hover { background: #5a6268; color: white; transform: translateX(-4px); }
+
+        /* ── Pagination ──────────────────────────────── */
+        .pagination .page-link {
+            border-radius: 8px !important; margin: 0 2px;
+            border: 2px solid #e0e0e0; color: var(--primary);
+            font-weight: 600;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary); border-color: var(--primary); color: white;
+        }
+
+        /* ── Details popover ─────────────────────────── */
+        .details-btn {
+            background: none; border: 1px solid #e0e0e0;
+            border-radius: 6px; padding: .15rem .5rem;
+            font-size: .75rem; color: #555; cursor: pointer;
+            transition: all .2s;
+        }
+
+        .details-btn:hover { background: #f5f5f5; border-color: #aaa; }
+
+        /* ── IP tag ──────────────────────────────────── */
+        .ip-tag {
+            font-family: monospace; font-size: .78rem;
+            color: #666; background: #f5f5f5;
+            padding: .1rem .4rem; border-radius: 5px;
+        }
+
+        /* ── Empty state ─────────────────────────────── */
+        .empty-state { text-align: center; padding: 3rem 0; color: #9e9e9e; }
+        .empty-state i { font-size: 3.5rem; opacity: .4; }
+
+        /* ── Modal details ───────────────────────────── */
+        #detailsModal .modal-content { border-radius: 16px; }
+        #detailsModal .modal-header { background: linear-gradient(135deg,var(--primary),var(--primary-light)); color:white; border-radius: 16px 16px 0 0; }
+        #detailsModal .modal-header .btn-close { filter: invert(1); }
+        pre#detailsContent { background:#f8f9fa; border-radius:10px; padding:1rem; font-size:.85rem; max-height:400px; overflow-y:auto; }
+    </style>
+</head>
+<body>
+<div class="container-fluid px-4" style="max-width:1400px;">
+
+    <a href="/dashboard" class="btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- ── Page Header ────────────────────────────────── -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2><i class="bi bi-journal-check"></i> Audit Log</h2>
+            {% if is_auditor_scope %}
+            <p class="subtitle">
+                <i class="bi bi-funnel-fill"></i>
+                Showing activity for your assigned {{ auditor_companies | length }} company(ies):
+                <strong>{{ auditor_companies | join(', ') }}</strong>
+            </p>
+            {% else %}
+            <p class="subtitle">Complete trail of all actions performed in FinAnalyzer Pro</p>
+            {% endif %}
+        </div>
+        <a href="{{ export_url }}" class="btn-export">
+            <i class="bi bi-download"></i> Export CSV
+            {% if active_filters_count %}<span class="badge bg-light text-dark ms-1" style="font-size:.7rem;">{{ active_filters_count }} filter{{ 's' if active_filters_count > 1 else '' }}</span>{% endif %}
+        </a>
+    </div>
+
+    {% if is_auditor_scope %}
+    <div class="alert" style="background:#fff8e1;border-left:4px solid #f57c00;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.9rem;">
+        <i class="bi bi-info-circle-fill" style="color:#f57c00;"></i>
+        <strong>Auditor View:</strong> You are seeing only activity related to your assigned companies and their users.
+        System-level events from other companies are not visible to you.
+    </div>
+    {% endif %}
+
+    <!-- ── Stats Row ──────────────────────────────────── -->
+    <div class="row g-3 stats-row">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="bi bi-list-ul"></i></div>
+                <div>
+                    <div class="stat-value">{{ total }}</div>
+                    <div class="stat-label">Total Records{% if active_filters_count %} <span style="font-size:.7rem;color:#3949ab;">(filtered)</span>{% endif %}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="bi bi-cloud-upload"></i></div>
+                <div>
+                    <div class="stat-value">{{ stats_uploads }}</div>
+                    <div class="stat-label">Uploads</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="bi bi-pencil-square"></i></div>
+                <div>
+                    <div class="stat-value">{{ stats_edits }}</div>
+                    <div class="stat-label">Edits</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="bi bi-trash"></i></div>
+                <div>
+                    <div class="stat-value">{{ stats_deletions }}</div>
+                    <div class="stat-label">Deletions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Filters ────────────────────────────────────── -->
+    <div class="filter-card">
+        <h6><i class="bi bi-funnel"></i> Filter Records
+            {% if active_filters_count %}
+            <span class="badge bg-warning text-dark ms-2" style="font-size:.75rem;">
+                {{ active_filters_count }} active
+            </span>
+            {% endif %}
+        </h6>
+        <form method="GET" action="/admin/audit-log" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <!-- Row 1 -->
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        Action
+                        {% if filter_action %}<a href="javascript:void(0)" onclick="clearFilter('action')" class="text-danger ms-1" style="font-size:.7rem;" title="Clear"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <select name="action" class="form-select form-select-sm" id="f_action">
+                        <option value="">All Actions</option>
+                        {% for act in distinct_actions %}
+                        <option value="{{ act }}" {% if filter_action == act %}selected{% endif %}>{{ act }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        Username
+                        {% if filter_username %}<a href="javascript:void(0)" onclick="clearFilter('username')" class="text-danger ms-1" style="font-size:.7rem;"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <input type="text" name="username" class="form-control form-control-sm"
+                           placeholder="Search user…" value="{{ filter_username }}" id="f_username">
+                </div>
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        Entity Type
+                        {% if filter_entity_type %}<a href="javascript:void(0)" onclick="clearFilter('entity_type')" class="text-danger ms-1" style="font-size:.7rem;"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <select name="entity_type" class="form-select form-select-sm" id="f_entity_type">
+                        <option value="">All Types</option>
+                        {% for etype in distinct_entities %}
+                        <option value="{{ etype }}" {% if filter_entity_type == etype %}selected{% endif %}>{{ etype }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        Entity Name
+                        {% if filter_entity_name %}<a href="javascript:void(0)" onclick="clearFilter('entity_name')" class="text-danger ms-1" style="font-size:.7rem;"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <input type="text" name="entity_name" class="form-control form-control-sm"
+                           placeholder="Search entity…" value="{{ filter_entity_name }}" id="f_entity_name">
+                </div>
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        IP Address
+                        {% if filter_ip_address %}<a href="javascript:void(0)" onclick="clearFilter('ip_address')" class="text-danger ms-1" style="font-size:.7rem;"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <input type="text" name="ip_address" class="form-control form-control-sm"
+                           placeholder="e.g. 192.168…" value="{{ filter_ip_address }}" id="f_ip">
+                </div>
+                <!-- Row 2: dates + buttons -->
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        From Date
+                        {% if filter_date_from %}<a href="javascript:void(0)" onclick="clearFilter('date_from')" class="text-danger ms-1" style="font-size:.7rem;"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <input type="date" name="date_from" class="form-control form-control-sm"
+                           value="{{ filter_date_from }}" id="f_date_from">
+                </div>
+                <div class="col-12 col-sm-6 col-md-2">
+                    <label class="form-label fw-semibold" style="font-size:.82rem;">
+                        To Date
+                        {% if filter_date_to %}<a href="javascript:void(0)" onclick="clearFilter('date_to')" class="text-danger ms-1" style="font-size:.7rem;"><i class="bi bi-x-circle-fill"></i></a>{% endif %}
+                    </label>
+                    <input type="date" name="date_to" class="form-control form-control-sm"
+                           value="{{ filter_date_to }}" id="f_date_to">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3 d-flex gap-2 mt-1">
+                    <button type="submit" class="btn btn-filter btn-sm flex-fill">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                    <a href="/admin/audit-log" class="btn btn-reset btn-sm flex-fill text-center">
+                        <i class="bi bi-x-circle"></i> Reset All
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ── Table ──────────────────────────────────────── -->
+    <div class="table-card">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h6 class="mb-0">
+                <i class="bi bi-table"></i>
+                Showing {{ (page - 1) * per_page + 1 }}–{{ [(page * per_page), total] | min }}
+                of {{ total }} records
+            </h6>
+            {% if active_filters_count %}
+            <span class="badge bg-warning text-dark">
+                <i class="bi bi-funnel-fill"></i> {{ active_filters_count }} filter{{ 's' if active_filters_count > 1 else '' }} active
+            </span>
+            {% endif %}
+        </div>
+
+        {% if logs %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">#</th>
+                        <th style="width:160px;">Timestamp</th>
+                        <th style="width:130px;">User</th>
+                        <th style="width:150px;">Action</th>
+                        <th style="width:110px;">Entity Type</th>
+                        <th>Entity Name</th>
+                        <th style="width:110px;">IP Address</th>
+                        <th style="width:80px;">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="text-muted" style="font-size:.8rem;">#{{ log.id }}</td>
+
+                        <td>
+                            <div style="font-size:.82rem; font-weight:600;">
+                                {{ log.timestamp.strftime('%Y-%m-%d') if log.timestamp else '—' }}
+                            </div>
+                            <div style="font-size:.75rem; color:#9e9e9e;">
+                                {{ log.timestamp.strftime('%H:%M:%S') if log.timestamp else '' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div style="font-weight:600; font-size:.85rem;">
+                                <i class="bi bi-person-circle text-muted" style="font-size:.75rem;"></i>
+                                {{ log.username }}
+                            </div>
+                            {% if log.user_id %}
+                            <div style="font-size:.72rem; color:#9e9e9e;">ID #{{ log.user_id }}</div>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% set action = log.action %}
+                            {% if action in ['LOGIN'] %}
+                                <span class="badge-action badge-login"><i class="bi bi-box-arrow-in-right"></i> {{ action }}</span>
+                            {% elif action == 'LOGOUT' %}
+                                <span class="badge-action badge-logout"><i class="bi bi-box-arrow-right"></i> {{ action }}</span>
+                            {% elif action == 'UPLOAD_DATA' %}
+                                <span class="badge-action badge-upload"><i class="bi bi-cloud-upload"></i> {{ action }}</span>
+                            {% elif action.startswith('ADD_') %}
+                                <span class="badge-action badge-add"><i class="bi bi-plus-circle"></i> {{ action }}</span>
+                            {% elif action.startswith('EDIT_') %}
+                                <span class="badge-action badge-edit"><i class="bi bi-pencil"></i> {{ action }}</span>
+                            {% elif action.startswith('DELETE_') %}
+                                <span class="badge-action badge-delete"><i class="bi bi-trash"></i> {{ action }}</span>
+                            {% elif action.startswith('ASSIGN') %}
+                                <span class="badge-action badge-assign"><i class="bi bi-person-check"></i> {{ action }}</span>
+                            {% elif action.startswith('UNASSIGN') %}
+                                <span class="badge-action badge-unassign"><i class="bi bi-person-dash"></i> {{ action }}</span>
+                            {% elif action == 'DOWNLOAD_PDF' %}
+                                <span class="badge-action badge-download"><i class="bi bi-file-pdf"></i> {{ action }}</span>
+                            {% elif action.startswith('EXPORT') %}
+                                <span class="badge-action badge-export"><i class="bi bi-download"></i> {{ action }}</span>
+                            {% else %}
+                                <span class="badge-action badge-default">{{ action }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if log.entity_type %}
+                                {% if log.entity_type == 'Company' %}
+                                    <span class="badge-entity badge-company"><i class="bi bi-building"></i> {{ log.entity_type }}</span>
+                                {% elif log.entity_type == 'User' %}
+                                    <span class="badge-entity badge-user"><i class="bi bi-person"></i> {{ log.entity_type }}</span>
+                                {% elif log.entity_type == 'Analysis' %}
+                                    <span class="badge-entity badge-analysis"><i class="bi bi-bar-chart"></i> {{ log.entity_type }}</span>
+                                {% elif log.entity_type == 'AuditLog' %}
+                                    <span class="badge-entity badge-auditlog"><i class="bi bi-journal"></i> {{ log.entity_type }}</span>
+                                {% else %}
+                                    <span class="badge-entity" style="background:#f5f5f5;color:#555;">{{ log.entity_type }}</span>
+                                {% endif %}
+                                {% if log.entity_id %}
+                                <span style="font-size:.72rem;color:#9e9e9e;"> #{{ log.entity_id }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                            title="{{ log.entity_name or '' }}">
+                            {{ log.entity_name or '—' }}
+                        </td>
+
+                        <td>
+                            {% if log.ip_address %}
+                            <span class="ip-tag">{{ log.ip_address }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if log.details %}
+                            <button class="details-btn"
+                                    onclick="showDetails({{ log.id }}, {{ log.details | tojson }})">
+                                <i class="bi bi-info-circle"></i> View
+                            </button>
+                            {% else %}
+                            <span class="text-muted" style="font-size:.8rem;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if total_pages > 1 %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="?page={{ page - 1 }}&action={{ filter_action }}&username={{ filter_username }}&entity_type={{ filter_entity_type }}&entity_name={{ filter_entity_name }}&ip_address={{ filter_ip_address }}&date_from={{ filter_date_from }}&date_to={{ filter_date_to }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page or (p >= page - 2 and p <= page + 2) or p == 1 or p == total_pages %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}&action={{ filter_action }}&username={{ filter_username }}&entity_type={{ filter_entity_type }}&entity_name={{ filter_entity_name }}&ip_address={{ filter_ip_address }}&date_from={{ filter_date_from }}&date_to={{ filter_date_to }}">{{ p }}</a>
+                    </li>
+                    {% elif p == page - 3 or p == page + 3 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="?page={{ page + 1 }}&action={{ filter_action }}&username={{ filter_username }}&entity_type={{ filter_entity_type }}&entity_name={{ filter_entity_name }}&ip_address={{ filter_ip_address }}&date_from={{ filter_date_from }}&date_to={{ filter_date_to }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-x d-block mb-3"></i>
+            <h5>No audit records found</h5>
+            <p>No actions match the current filters, or the audit log is empty.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle"></i> Action Details — Log #<span id="modalLogId"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="detailsContent"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showDetails(logId, details) {
+        document.getElementById('modalLogId').textContent = logId;
+        let parsed;
+        try {
+            parsed = (typeof details === 'string') ? JSON.parse(details) : details;
+            document.getElementById('detailsContent').textContent =
+                JSON.stringify(parsed, null, 2);
+        } catch {
+            document.getElementById('detailsContent').textContent = String(details);
+        }
+        new bootstrap.Modal(document.getElementById('detailsModal')).show();
+    }
+
+    // Clear individual filter and re-submit
+    function clearFilter(name) {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el) {
+            if (el.tagName === 'SELECT') el.value = '';
+            else el.value = '';
+        }
+        document.getElementById('filterForm').submit();
+    }
+
+    // Auto-submit on select change
+    ['action', 'entity_type'].forEach(name => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el) el.addEventListener('change', () => document.getElementById('filterForm').submit());
+    });
+
+    // Page load animation
+    window.addEventListener('load', () => {
+        document.querySelector('.table-card').style.opacity = '0';
+        document.querySelector('.table-card').style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            Object.assign(document.querySelector('.table-card').style, {
+                transition: 'all .5s ease', opacity: '1', transform: 'translateY(0)'
+            });
+        }, 100);
+    });
+</script>
+</body>
+</html>

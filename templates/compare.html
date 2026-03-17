@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding-top: 2rem;
+        }
+
+        .compare-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+        }
+
+        .comparison-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .comparison-type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .type-option {
+            flex: 1;
+            padding: 1.5rem;
+            border: 3px solid #e0e0e0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .type-option:hover:not(.disabled) {
+            border-color: #1976D2;
+            background: #E3F2FD;
+        }
+
+        .type-option.active {
+            border-color: #1976D2;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+        }
+
+        .type-option i {
+            font-size: 2.5rem;
+            color: #1976D2;
+            display: block;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #424242;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-select {
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            padding: 0.8rem;
+            font-size: 1rem;
+        }
+
+        .btn-compare {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            border: none;
+            color: white;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-compare:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.4);
+        }
+
+        .btn-compare:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .vs-divider {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .vs-badge {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: inline-block;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-left: 4px solid #F57C00;
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-box.success {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left-color: #4CAF50;
+        }
+
+        .analysis-selector {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 2px solid #dee2e6;
+        }
+
+        .analysis-selector label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .analysis-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="compare-container">
+        <a href="/dashboard" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="page-header">
+            <h1><i class="bi bi-bar-chart-steps"></i> Financial Comparison</h1>
+            <p>Compare companies or analyze performance trends over time</p>
+            {% if not can_compare_companies %}
+            <small><i class="bi bi-info-circle"></i> You can compare periods for your companies. Admin access required for company comparisons.</small>
+            {% endif %}
+        </div>
+
+        <div class="comparison-card">
+            <!-- Alert Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Info Box for Regular Users -->
+            {% if not can_compare_companies %}
+            <div class="info-box">
+                <i class="bi bi-lightbulb"></i>
+                <strong>Period Comparison Available:</strong> You can compare financial performance across different time periods for your companies.
+            </div>
+            {% else %}
+            <div class="info-box success">
+                <i class="bi bi-shield-check"></i>
+                <strong>Full Access:</strong> As an administrator, you can compare both different companies and different time periods.
+            </div>
+            {% endif %}
+
+            <!-- Comparison Type Selector -->
+            {% if can_compare_companies %}
+            <div class="comparison-type-selector">
+                <div class="type-option" id="companiesOption" onclick="selectComparisonType('companies')">
+                    <i class="bi bi-buildings"></i>
+                    <h5>Compare Companies</h5>
+                    <p>Side-by-side company analysis</p>
+                </div>
+                <div class="type-option active" id="periodsOption" onclick="selectComparisonType('periods')">
+                    <i class="bi bi-calendar-range"></i>
+                    <h5>Compare Periods</h5>
+                    <p>Track performance over time</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="comparison-type-selector">
+                <div class="type-option active" id="periodsOption" style="cursor: default;">
+                    <i class="bi bi-calendar-range"></i>
+                    <h5>Compare Periods</h5>
+                    <p>Track performance over time for your companies</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/compare" id="compareForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="compare_type" id="compareType" value="periods">
+
+                <!-- Companies Comparison Form -->
+                <div id="companiesForm" class="form-section">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i> First Company
+                            </label>
+                            <select name="company1" id="company1Select" class="form-select" onchange="loadCompanyAnalyses(this.value, 1)">
+                                <option value="">Select company...</option>
+                                {% for company in companies %}
+                                <option value="{{ company.id }}">{{ company.name }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <!-- Analysis selector for Company 1 -->
+                            <div class="analysis-selector" id="analysis1Container" style="display: none;">
+                                <label>
+                                    <i class="bi bi-file-bar-graph"></i> Select Analysis Report
+                                </label>
+                                <select name="analysis1" id="analysis1Select" class="form-select">
+                                    <option value="">Loading analyses...</option>
+                                </select>
+                                <div class="analysis-info" id="analysis1Info"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="vs-divider">
+                                <span class="vs-badge">VS</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i> Second Company
+                            </label>
+                            <select name="company2" id="company2Select" class="form-select" onchange="loadCompanyAnalyses(this.value, 2)">
+                                <option value="">Select company...</option>
+                                {% for company in companies %}
+                                <option value="{{ company.id }}">{{ company.name }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <!-- Analysis selector for Company 2 -->
+                            <div class="analysis-selector" id="analysis2Container" style="display: none;">
+                                <label>
+                                    <i class="bi bi-file-bar-graph"></i> Select Analysis Report
+                                </label>
+                                <select name="analysis2" id="analysis2Select" class="form-select">
+                                    <option value="">Loading analyses...</option>
+                                </select>
+                                <div class="analysis-info" id="analysis2Info"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Periods Comparison Form (unchanged) -->
+                <div id="periodsForm" class="form-section active">
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-building"></i> Select Company
+                        </label>
+                        <select name="company" id="companySelect" class="form-select" onchange="loadPeriods(this.value)" required>
+                            <option value="">Choose a company...</option>
+                            {% for company in companies %}
+                            <option value="{{ company.id }}">{{ company.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row" id="periodSelector" style="display: none;">
+                        <div class="col-md-5">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-check"></i> First Period (Older)
+                            </label>
+                            <select name="period1" id="period1Select" class="form-select" required>
+                                <option value="">Select period...</option>
+                            </select>
+                            <small class="text-muted">Select the earlier period for comparison</small>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="vs-divider">
+                                <span class="vs-badge">VS</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-check"></i> Second Period (Newer)
+                            </label>
+                            <select name="period2" id="period2Select" class="form-select" required>
+                                <option value="">Select period...</option>
+                            </select>
+                            <small class="text-muted">Select the more recent period for comparison</small>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-compare" id="compareBtn">
+                    <i class="bi bi-graph-up"></i> Generate Comparison
+                </button>
+
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating comparison...</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        console.log('🚀 Compare page loaded');
+
+        const canCompareCompanies = {{ 'true' if can_compare_companies else 'false' }};
+
+        function selectComparisonType(type) {
+            console.log('📋 Selected comparison type:', type);
+
+            if (type === 'companies' && !canCompareCompanies) {
+                alert('⚠️ Admin Access Required\n\nCompany comparison is only available to administrators.\n\nYou can compare different time periods for your companies using the "Compare Periods" option.');
+                return;
+            }
+
+            // Update UI
+            document.querySelectorAll('.type-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.getElementById(type + 'Option').classList.add('active');
+
+            // Update hidden input
+            document.getElementById('compareType').value = type;
+
+            // Show/hide forms
+            if (type === 'companies') {
+                document.getElementById('companiesForm').classList.add('active');
+                document.getElementById('periodsForm').classList.remove('active');
+
+                // Remove required from periods
+                document.getElementById('companySelect').removeAttribute('required');
+                document.getElementById('period1Select').removeAttribute('required');
+                document.getElementById('period2Select').removeAttribute('required');
+            } else {
+                document.getElementById('companiesForm').classList.remove('active');
+                document.getElementById('periodsForm').classList.add('active');
+
+                // Add required to periods
+                document.getElementById('companySelect').setAttribute('required', 'required');
+            }
+        }
+
+        // Load analyses for company comparison
+        function loadCompanyAnalyses(companyId, companyNumber) {
+            console.log(`📊 Loading analyses for company ${companyNumber}:`, companyId);
+
+            const container = document.getElementById(`analysis${companyNumber}Container`);
+            const select = document.getElementById(`analysis${companyNumber}Select`);
+            const info = document.getElementById(`analysis${companyNumber}Info`);
+
+            if (!companyId) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            select.innerHTML = '<option value="">Loading...</option>';
+            select.disabled = true;
+
+            fetch(`/api/company/${companyId}/analyses`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to load analyses');
+                    return response.json();
+                })
+                .then(analyses => {
+                    console.log(`✅ Loaded ${analyses.length} analyses for company ${companyNumber}`);
+
+                    if (analyses.length === 0) {
+                        select.innerHTML = '<option value="">No analyses available</option>';
+                        info.innerHTML = '<i class="bi bi-exclamation-circle"></i> No analysis reports found for this company';
+                        select.disabled = true;
+                        return;
+                    }
+
+                    select.innerHTML = '<option value="">Select analysis report...</option>';
+                    analyses.forEach(analysis => {
+                        const option = new Option(
+                            `${analysis.label} - Score: ${analysis.health_score}`,
+                            analysis.id
+                        );
+                        select.add(option);
+                    });
+
+                    select.disabled = false;
+                    info.innerHTML = `<i class="bi bi-info-circle"></i> ${analyses.length} report(s) available`;
+
+                    // Add change listener to show selected analysis info
+                    select.onchange = function() {
+                        const selectedAnalysis = analyses.find(a => a.id == this.value);
+                        if (selectedAnalysis) {
+                            info.innerHTML = `
+                                <i class="bi bi-check-circle text-success"></i>
+                                Period: ${selectedAnalysis.period_end} |
+                                Health Score: ${selectedAnalysis.health_score}/100
+                            `;
+                        }
+                    };
+                })
+                .catch(error => {
+                    console.error('❌ Error loading analyses:', error);
+                    select.innerHTML = '<option value="">Error loading analyses</option>';
+                    info.innerHTML = '<i class="bi bi-x-circle text-danger"></i> Failed to load analyses';
+                    select.disabled = true;
+                });
+        }
+
+        // Load periods for period comparison (unchanged)
+        function loadPeriods(companyId) {
+            console.log('📅 Loading periods for company:', companyId);
+
+            const periodSelector = document.getElementById('periodSelector');
+            const period1Select = document.getElementById('period1Select');
+            const period2Select = document.getElementById('period2Select');
+
+            if (!companyId) {
+                periodSelector.style.display = 'none';
+                period1Select.innerHTML = '<option value="">Select period...</option>';
+                period2Select.innerHTML = '<option value="">Select period...</option>';
+                return;
+            }
+
+            period1Select.innerHTML = '<option value="">Loading...</option>';
+            period2Select.innerHTML = '<option value="">Loading...</option>';
+            period1Select.disabled = true;
+            period2Select.disabled = true;
+
+            fetch('/api/company/' + companyId + '/periods')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(periods => {
+                    console.log('✅ Received periods:', periods);
+
+                    if (!periods || periods.length === 0) {
+                        period1Select.innerHTML = '<option value="">No periods available</option>';
+                        period2Select.innerHTML = '<option value="">No periods available</option>';
+                        alert('⚠️ No financial data periods found for this company.\n\nPlease upload financial data first.');
+                        return;
+                    }
+
+                    if (periods.length < 2) {
+                        period1Select.innerHTML = '<option value="">Need at least 2 periods</option>';
+                        period2Select.innerHTML = '<option value="">Need at least 2 periods</option>';
+                        alert('⚠️ At least 2 periods are required for comparison.\n\nThis company only has ' + periods.length + ' period(s).');
+                        return;
+                    }
+
+                    period1Select.innerHTML = '<option value="">Select older period...</option>';
+                    period2Select.innerHTML = '<option value="">Select newer period...</option>';
+
+                    periods.forEach(period => {
+                        const option1 = new Option(period.label, period.id);
+                        const option2 = new Option(period.label, period.id);
+                        period1Select.add(option1);
+                        period2Select.add(option2);
+                    });
+
+                    period1Select.disabled = false;
+                    period2Select.disabled = false;
+                    periodSelector.style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('❌ Error loading periods:', error);
+                    alert('Error loading periods. Please try again.');
+                    period1Select.innerHTML = '<option value="">Error loading</option>';
+                    period2Select.innerHTML = '<option value="">Error loading</option>';
+                });
+        }
+
+        // Form validation
+        document.getElementById('compareForm').addEventListener('submit', function(e) {
+            const compareType = document.getElementById('compareType').value;
+            let isValid = true;
+            let errorMessage = '';
+
+            if (compareType === 'companies') {
+                const company1 = document.getElementById('company1Select').value;
+                const company2 = document.getElementById('company2Select').value;
+                const analysis1 = document.getElementById('analysis1Select').value;
+                const analysis2 = document.getElementById('analysis2Select').value;
+
+                if (!company1 || !company2) {
+                    isValid = false;
+                    errorMessage = 'Please select both companies';
+                } else if (company1 === company2) {
+                    isValid = false;
+                    errorMessage = 'Please select two different companies';
+                } else if (!analysis1 || !analysis2) {
+                    isValid = false;
+                    errorMessage = 'Please select analysis reports for both companies';
+                }
+            } else if (compareType === 'periods') {
+                const company = document.getElementById('companySelect').value;
+                const period1 = document.getElementById('period1Select').value;
+                const period2 = document.getElementById('period2Select').value;
+
+                if (!company) {
+                    isValid = false;
+                    errorMessage = 'Please select a company';
+                } else if (!period1 || !period2) {
+                    isValid = false;
+                    errorMessage = 'Please select both periods';
+                } else if (period1 === period2) {
+                    isValid = false;
+                    errorMessage = 'Please select two different periods';
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('❌ ' + errorMessage);
+                return false;
+            }
+
+            // Show loading state
+            document.getElementById('compareBtn').disabled = true;
+            document.getElementById('compareBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            document.getElementById('loadingSpinner').classList.add('show');
+
+            return true;
+        });
+    </script>
+</body>
+</html>

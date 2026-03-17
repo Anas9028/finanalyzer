@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Financial Data - {{ company.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .upload-container { max-width: 800px; margin: 0 auto; }
+
+        .page-header {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white; border-radius: 20px; padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(25,118,210,.3);
+        }
+        .upload-card {
+            background: white; border-radius: 20px; padding: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,.08); margin-bottom: 2rem;
+        }
+        .upload-area {
+            border: 3px dashed #1976D2; border-radius: 16px;
+            padding: 3rem 2rem; text-align: center;
+            background: linear-gradient(135deg, #E3F2FD, #fff);
+            transition: all .3s ease; cursor: pointer; margin-bottom: 1.5rem;
+        }
+        .upload-area:hover  { border-color:#0D47A1; background:#E3F2FD; transform:scale(1.02); }
+        .upload-area.dragover{ background:#BBDEFB; border-color:#0D47A1; }
+        .upload-area.done   { border-color:#2E7D32; background:#E8F5E9; }
+        .upload-icon { font-size:4rem; color:#1976D2; margin-bottom:1rem; }
+        .upload-area.done .upload-icon { color:#2E7D32; }
+
+        .btn-upload {
+            background: linear-gradient(135deg,#1976D2,#0D47A1);
+            border:none; color:white; padding:1rem 3rem;
+            font-size:1.1rem; font-weight:600; border-radius:12px;
+            width:100%; transition:all .3s ease; margin-top:1.5rem;
+        }
+        .btn-upload:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 20px rgba(25,118,210,.4); }
+        .btn-upload:disabled { opacity:.5; cursor:not-allowed; }
+
+        .btn-back {
+            background:#6c757d; border:none; color:white;
+            padding:.6rem 1.5rem; border-radius:10px;
+            text-decoration:none; display:inline-flex;
+            align-items:center; gap:.5rem; margin-bottom:1rem;
+            transition:all .3s ease;
+        }
+        .btn-back:hover { background:#5a6268; color:white; transform:translateX(-5px); }
+
+        .file-info { background:#f8f9fa; border-radius:12px; padding:1rem; margin-top:1rem; display:none; }
+        .file-info.show { display:block; animation:fadeIn .4s ease; }
+
+        .info-box {
+            background: linear-gradient(135deg,#fff3e0,#ffe0b2);
+            border-left:4px solid #f57c00; border-radius:12px;
+            padding:1.2rem; margin-bottom:2rem;
+        }
+        .form-label { font-weight:600; color:#424242; margin-bottom:.8rem; }
+
+        /* ── Processing overlay ────────────────────────────── */
+        #processingOverlay {
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,.65); z-index:9999;
+            align-items:center; justify-content:center; flex-direction:column;
+        }
+        #processingOverlay.active { display:flex; }
+
+        .overlay-card {
+            background:#fff; border-radius:24px;
+            padding:2.5rem 3rem; max-width:480px; width:90%;
+            text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.4);
+            animation:popIn .35s ease;
+        }
+        @keyframes popIn {
+            from { transform:scale(.85); opacity:0; }
+            to   { transform:scale(1);  opacity:1; }
+        }
+        @keyframes fadeIn {
+            from { opacity:0; transform:translateY(-8px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .spinner-ring {
+            width:70px; height:70px; border-radius:50%;
+            border:6px solid #e3f2fd;
+            border-top-color:#1976D2;
+            animation:spin 1s linear infinite;
+            margin:0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        .progress-wrap { background:#e3f2fd; border-radius:50px; height:16px; overflow:hidden; margin:1rem 0; }
+        .progress-bar-inner {
+            height:100%; border-radius:50px;
+            background:linear-gradient(90deg,#1976D2,#42A5F5);
+            transition:width .6s ease;
+        }
+
+        #overlayStep  { color:#555; font-size:.95rem; margin-top:.5rem; min-height:1.4rem; }
+        #overlayPct   { font-size:2rem; font-weight:700; color:#1976D2; }
+        #overlayTitle { font-size:1.2rem; font-weight:700; color:#1a1a2e; margin-bottom:.5rem; }
+
+        .step-dots span {
+            display:inline-block; width:8px; height:8px;
+            border-radius:50%; background:#1976D2; margin:0 3px;
+            animation:bounce .9s ease infinite;
+        }
+        .step-dots span:nth-child(2) { animation-delay:.15s; }
+        .step-dots span:nth-child(3) { animation-delay:.3s; }
+        @keyframes bounce {
+            0%,60%,100% { transform:translateY(0); }
+            30%          { transform:translateY(-8px); }
+        }
+
+        /* ── Success state ── */
+        .overlay-success .spinner-ring { display:none; }
+        .check-icon { font-size:4rem; color:#2E7D32; margin-bottom:1rem; }
+    </style>
+</head>
+<body>
+<div class="upload-container">
+    <a href="/company/{{ company.id }}" class="btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Company
+    </a>
+
+    <div class="page-header">
+        <h2><i class="bi bi-cloud-upload"></i> Upload Financial Data</h2>
+        <p class="mb-0 mt-2">{{ company.name }}</p>
+    </div>
+
+    <div class="info-box">
+        <i class="bi bi-lightbulb"></i>
+        <strong>Required Files:</strong>
+        <ul class="mb-0 mt-2">
+            <li>Balance Sheet (Excel format)</li>
+            <li>Income Statement (Excel format)</li>
+        </ul>
+        <small class="text-muted d-block mt-2">
+            Supported: .xlsx, .xls &nbsp;|&nbsp; Max: 16 MB per file<br>
+            <i class="bi bi-info-circle"></i>
+            AI analysis runs in the background — you'll see live progress and be redirected automatically.
+        </small>
+    </div>
+
+    <div class="upload-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {% if category == 'success' %}<i class="bi bi-check-circle"></i>
+                    {% elif category == 'danger' %}<i class="bi bi-exclamation-triangle"></i>
+                    {% else %}<i class="bi bi-info-circle"></i>{% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}{% endif %}
+        {% endwith %}
+
+        <!-- We do NOT use a normal <form> submit — we intercept with fetch() -->
+        <div id="uploadForm">
+            <input type="hidden" name="csrf_token" id="csrfToken" value="{{ csrf_token() }}">
+
+            <!-- Balance Sheet -->
+            <div class="mb-4">
+                <label class="form-label">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Balance Sheet
+                </label>
+                <div class="upload-area" id="balanceUpload"
+                     onclick="document.getElementById('balance_file').click()">
+                    <div class="upload-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+                    <h5>Click to upload or drag & drop</h5>
+                    <p class="text-muted mb-0">Balance Sheet Excel file</p>
+                </div>
+                <input type="file" class="d-none" id="balance_file" name="balance_file"
+                       accept=".xlsx,.xls" onchange="handleFileSelect(this,'balance')">
+                <div class="file-info" id="balanceInfo"></div>
+            </div>
+
+            <!-- Income Statement -->
+            <div class="mb-4">
+                <label class="form-label">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Income Statement
+                </label>
+                <div class="upload-area" id="incomeUpload"
+                     onclick="document.getElementById('income_file').click()">
+                    <div class="upload-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+                    <h5>Click to upload or drag & drop</h5>
+                    <p class="text-muted mb-0">Income Statement Excel file</p>
+                </div>
+                <input type="file" class="d-none" id="income_file" name="income_file"
+                       accept=".xlsx,.xls" onchange="handleFileSelect(this,'income')">
+                <div class="file-info" id="incomeInfo"></div>
+            </div>
+
+            <button class="btn btn-upload" id="submitBtn" disabled onclick="startUpload()">
+                <i class="bi bi-cloud-upload"></i> Upload and Analyze
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Processing Overlay ─────────────────────────────── -->
+<div id="processingOverlay">
+    <div class="overlay-card" id="overlayCard">
+        <div class="spinner-ring" id="overlaySpinner"></div>
+        <div id="overlayTitle">Processing your files…</div>
+        <div id="overlayPct">0%</div>
+        <div class="progress-wrap">
+            <div class="progress-bar-inner" id="overlayBar" style="width:0%"></div>
+        </div>
+        <div id="overlayStep">Starting…</div>
+        <div class="step-dots mt-3" id="overlayDots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ── File selection state ───────────────────────────── */
+let balanceSelected = false;
+let incomeSelected  = false;
+
+function handleFileSelect(input, type) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+    const infoDiv = document.getElementById(type + 'Info');
+    const area    = document.getElementById(type + 'Upload');
+
+    infoDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="bi bi-file-earmark-check text-success"></i>
+            <strong>${file.name}</strong>
+            <small class="text-muted d-block">Size: ${sizeMB} MB</small>
+          </div>
+          <button type="button" class="btn btn-sm btn-danger" onclick="clearFile('${type}')">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>`;
+    infoDiv.classList.add('show');
+    area.classList.add('done');
+    area.querySelector('h5').textContent = '✓ File selected';
+
+    if (type === 'balance') balanceSelected = true;
+    else                     incomeSelected  = true;
+    checkSubmit();
+}
+
+function clearFile(type) {
+    document.getElementById(type + '_file').value = '';
+    document.getElementById(type + 'Info').classList.remove('show');
+    const area = document.getElementById(type + 'Upload');
+    area.classList.remove('done');
+    area.querySelector('h5').textContent = 'Click to upload or drag & drop';
+    if (type === 'balance') balanceSelected = false;
+    else                     incomeSelected  = false;
+    checkSubmit();
+}
+
+function checkSubmit() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = !(balanceSelected && incomeSelected);
+}
+
+/* ── Drag & Drop ────────────────────────────────────── */
+['balanceUpload','incomeUpload'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('dragover',  e => { e.preventDefault(); el.classList.add('dragover'); });
+    el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+    el.addEventListener('drop', e => {
+        e.preventDefault();
+        el.classList.remove('dragover');
+        const type  = id.replace('Upload','');
+        const input = document.getElementById(type + '_file');
+        input.files = e.dataTransfer.files;
+        handleFileSelect(input, type);
+    });
+});
+
+/* ── Upload & Polling (exponential backoff) ─────────── */
+let pollTimeoutId  = null;   // setTimeout handle — lets us cancel cleanly
+let pollInterval   = 2000;   // current wait between polls (ms)
+const POLL_MIN     = 2000;   // minimum interval
+const POLL_MAX     = 15000;  // maximum interval (15 s)
+const BACKOFF_MULT = 1.5;    // multiply interval by this on 429 / network error
+
+async function startUpload() {
+    const balanceFile = document.getElementById('balance_file').files[0];
+    const incomeFile  = document.getElementById('income_file').files[0];
+    if (!balanceFile || !incomeFile) return;
+
+    // Build FormData
+    const fd = new FormData();
+    fd.append('balance_file', balanceFile);
+    fd.append('income_file',  incomeFile);
+    fd.append('csrf_token',   document.getElementById('csrfToken').value);
+
+    // Show overlay
+    showOverlay(0, 'Uploading files to server…');
+    document.getElementById('submitBtn').disabled = true;
+
+    try {
+        const resp = await fetch(window.location.pathname, {
+            method:  'POST',
+            body:    fd,
+            headers: { 'X-CSRFToken': document.getElementById('csrfToken').value }
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({ error: 'Upload failed.' }));
+            showError(err.error || 'Upload failed.');
+            return;
+        }
+
+        const { job_id } = await resp.json();
+        if (!job_id) { showError('No job ID returned from server.'); return; }
+
+        // Reset interval and kick off the first poll
+        pollInterval = POLL_MIN;
+        schedulePoll(job_id);
+
+    } catch (err) {
+        showError('Network error: ' + err.message);
+    }
+}
+
+/* Schedule the next poll after `pollInterval` ms */
+function schedulePoll(jobId) {
+    pollTimeoutId = setTimeout(() => pollStatus(jobId), pollInterval);
+}
+
+async function pollStatus(jobId) {
+    try {
+        const resp = await fetch(`/api/upload/status/${jobId}`);
+
+        // Rate-limited → back off and retry (don't treat as a fatal error)
+        if (resp.status === 429) {
+            pollInterval = Math.min(pollInterval * BACKOFF_MULT, POLL_MAX);
+            console.warn(`[poll] 429 rate-limited — retrying in ${(pollInterval/1000).toFixed(1)} s`);
+            schedulePoll(jobId);
+            return;
+        }
+
+        if (!resp.ok) {
+            // Other server error → back off once and retry
+            pollInterval = Math.min(pollInterval * BACKOFF_MULT, POLL_MAX);
+            schedulePoll(jobId);
+            return;
+        }
+
+        const data = await resp.json();
+        showOverlay(data.progress || 0, data.step || '…');
+
+        if (data.status === 'success') {
+            // ── Done: stop polling immediately ──────────────
+            clearTimeout(pollTimeoutId);
+            showSuccess();
+            setTimeout(() => {
+                window.location.href = `/analysis/${data.result.analysis_id}`;
+            }, 1800);
+            return;
+        }
+
+        if (data.status === 'failed') {
+            // ── Failed: stop polling immediately ────────────
+            clearTimeout(pollTimeoutId);
+            showError(data.error || 'Processing failed.');
+            return;
+        }
+
+        // Still running → reset to normal interval and schedule next poll
+        pollInterval = POLL_MIN;
+        schedulePoll(jobId);
+
+    } catch (_) {
+        // Network blip → back off and retry
+        pollInterval = Math.min(pollInterval * BACKOFF_MULT, POLL_MAX);
+        console.warn(`[poll] Network error — retrying in ${(pollInterval/1000).toFixed(1)} s`);
+        schedulePoll(jobId);
+    }
+}
+
+/* ── Overlay helpers ────────────────────────────────── */
+function showOverlay(pct, step) {
+    document.getElementById('processingOverlay').classList.add('active');
+    document.getElementById('overlayPct').textContent  = pct + '%';
+    document.getElementById('overlayBar').style.width  = pct + '%';
+    document.getElementById('overlayStep').textContent = step;
+}
+
+function showSuccess() {
+    document.getElementById('overlaySpinner').style.display = 'none';
+    document.getElementById('overlayDots').style.display    = 'none';
+    document.getElementById('overlayTitle').innerHTML =
+        '<span class="check-icon"><i class="bi bi-check-circle-fill text-success"></i></span><br>Analysis Complete!';
+    document.getElementById('overlayStep').textContent = 'Redirecting to your results…';
+    document.getElementById('overlayPct').textContent  = '100%';
+    document.getElementById('overlayBar').style.width  = '100%';
+    document.getElementById('overlayBar').style.background = 'linear-gradient(90deg,#2E7D32,#66BB6A)';
+}
+
+function showError(msg) {
+    document.getElementById('processingOverlay').classList.remove('active');
+    document.getElementById('submitBtn').disabled = false;
+    // Show inline alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+    alertDiv.innerHTML = `<i class="bi bi-exclamation-triangle"></i> <strong>Error:</strong> ${msg}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.getElementById('uploadForm').prepend(alertDiv);
+}
+
+/* ── Animate card on load ───────────────────────────── */
+window.addEventListener('load', () => {
+    const card = document.querySelector('.upload-card');
+    card.style.opacity   = '0';
+    card.style.transform = 'translateY(30px)';
+    setTimeout(() => {
+        card.style.transition = 'all .6s ease';
+        card.style.opacity    = '1';
+        card.style.transform  = 'translateY(0)';
+    }, 100);
+});
+</script>
+</body>
+</html>

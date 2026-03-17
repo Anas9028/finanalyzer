@@ -1,0 +1,8 @@
+instance/finanalyzer.db
+uploads/
+security.log
+__pycache__/
+*.pyc
+.env
+*.xlsx
+*.xls

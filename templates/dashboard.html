@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        :root {
+            --primary: #1976D2;
+            --primary-dark: #0D47A1;
+            --primary-light: #E3F2FD;
+            --success: #2E7D32;
+            --warning: #F57C00;
+            --danger: #C62828;
+            --gray: #64748B;
+            --gray-light: #F1F5F9;
+            --card-radius: 18px;
+            --shadow: 0 4px 24px rgba(15,23,42,0.08);
+            --shadow-lg: 0 12px 40px rgba(15,23,42,0.14);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #F0F4F9;
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary)) !important;
+            box-shadow: 0 2px 20px rgba(13,71,161,0.25);
+            padding: 0.85rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.88) !important;
+            font-weight: 500;
+            padding: 0.45rem 0.9rem !important;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.12); color: white !important; }
+        .dropdown-menu { border-radius: 12px; box-shadow: var(--shadow-lg); border: none; padding: 0.5rem; }
+        .dropdown-item { border-radius: 8px; padding: 0.5rem 0.9rem; font-size: 0.9rem; }
+
+        /* ── LAYOUT ── */
+        .main-container { display: flex; min-height: calc(100vh - 60px); }
+
+        .sidebar {
+            width: 248px;
+            background: white;
+            box-shadow: 2px 0 16px rgba(0,0,0,0.05);
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar-section {
+            padding: 0 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        .sidebar-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            padding: 0.75rem 0.75rem 0.35rem;
+        }
+        .sidebar .nav-link {
+            color: var(--gray) !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 10px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            font-size: 0.92rem;
+        }
+        .sidebar .nav-link:hover {
+            background: var(--primary-light);
+            color: var(--primary) !important;
+            transform: translateX(4px);
+        }
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white !important;
+            box-shadow: 0 4px 14px rgba(25,118,210,0.3);
+        }
+        .sidebar .nav-link i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        .content-area { flex: 1; padding: 1.75rem; overflow-x: hidden; min-width: 0; }
+
+        /* ── WELCOME BANNER ── */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: var(--card-radius);
+            padding: 1.75rem 2rem;
+            margin-bottom: 1.75rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .welcome-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: 80px;
+            width: 160px; height: 160px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .welcome-banner h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            position: relative;
+            z-index: 1;
+        }
+        .welcome-banner p { opacity: 0.88; position: relative; z-index: 1; margin: 0; }
+        .badge-admin {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── STATS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 1.35rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .stat-card:nth-child(1)::after { background: var(--primary); }
+        .stat-card:nth-child(2)::after { background: var(--success); }
+        .stat-card:nth-child(3)::after { background: var(--warning); }
+        .stat-card:nth-child(4)::after { background: var(--danger); }
+        .stat-icon {
+            width: 46px; height: 46px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 0.85rem;
+        }
+        .stat-card:nth-child(1) .stat-icon { background: #E3F2FD; color: var(--primary); }
+        .stat-card:nth-child(2) .stat-icon { background: #E8F5E9; color: var(--success); }
+        .stat-card:nth-child(3) .stat-icon { background: #FFF3E0; color: var(--warning); }
+        .stat-card:nth-child(4) .stat-icon { background: #FFEBEE; color: var(--danger); }
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-change {
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 0.35rem;
+        }
+        .stat-change.up { color: var(--success); }
+        .stat-change.neutral { color: var(--gray); }
+
+        /* ── ADMIN TOOLS ── */
+        .admin-tools {
+            background: linear-gradient(135deg, #FFF8E1, #FFF3CD);
+            border: 1px solid #FFE082;
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+        .admin-tools h5 {
+            color: #E65100;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 0.85rem; }
+        .tool-btn {
+            background: white;
+            border: 1.5px solid #FFE082;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            text-decoration: none;
+            color: #E65100;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+        .tool-btn:hover {
+            background: var(--warning);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(245,124,0,0.25);
+            border-color: var(--warning);
+        }
+        .tool-btn i { font-size: 1.6rem; }
+
+        /* ── CHART SECTION HEADER ── */
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .section-title-row h5 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+        .section-divider {
+            flex: 1;
+            height: 1px;
+            background: #E2E8F0;
+        }
+
+        /* ── CHARTS GRID ── */
+        .charts-row-top {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .charts-row-middle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .chart-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.25s;
+        }
+        .chart-card:hover { box-shadow: var(--shadow-lg); }
+        .chart-card.full-width { grid-column: span 2; }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1.5px solid #F1F5F9;
+        }
+        .chart-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .chart-title i { color: var(--primary); font-size: 1.05rem; }
+        .chart-subtitle { font-size: 0.75rem; color: var(--gray); margin-top: 0.1rem; font-weight: 400; }
+        .chart-container { position: relative; height: 240px; }
+        .chart-container-sm { position: relative; height: 200px; }
+        .chart-container-tall { position: relative; height: 300px; }
+
+        /* Tabs */
+        .chart-tabs { display: flex; gap: 0.3rem; }
+        .chart-tab {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid #E2E8F0;
+            background: white;
+            color: var(--gray);
+            transition: all 0.2s;
+        }
+        .chart-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ── HEATMAP ── */
+        .heatmap-wrapper { overflow-x: auto; }
+        .heatmap-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 3px;
+            font-size: 0.75rem;
+        }
+        .heatmap-table th {
+            font-weight: 600;
+            color: var(--gray);
+            text-align: center;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .heatmap-table th.row-header {
+            text-align: left;
+            min-width: 120px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .hm-cell {
+            border-radius: 6px;
+            padding: 0.5rem 0.4rem;
+            text-align: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.8rem;
+            cursor: default;
+            transition: transform 0.15s, box-shadow 0.15s;
+            white-space: nowrap;
+        }
+        .hm-cell:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10;
+            position: relative;
+        }
+        .hm-cell.level-5 { background: #1B5E20; }
+        .hm-cell.level-4 { background: #388E3C; }
+        .hm-cell.level-3 { background: #1976D2; }
+        .hm-cell.level-2 { background: #F57C00; }
+        .hm-cell.level-1 { background: #C62828; }
+        .hm-cell.level-0 { background: #ECEFF1; color: #90A4AE; }
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.72rem;
+            color: var(--gray);
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.3rem; }
+        .legend-dot {
+            width: 12px; height: 12px;
+            border-radius: 3px;
+        }
+
+        /* ── RADAR CHART CARD ── */
+        .radar-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── COMPANIES LIST ── */
+        .section-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.75rem;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1.5px solid #F1F5F9;
+        }
+        .section-header-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-header-title i { color: var(--primary); }
+
+        .company-card {
+            border: 1.5px solid #F1F5F9;
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .company-card:hover {
+            border-color: var(--primary);
+            background: #F8FBFF;
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(25,118,210,0.08);
+        }
+        .company-name {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.3rem;
+            font-size: 0.97rem;
+        }
+        .company-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.82rem;
+            color: var(--gray);
+        }
+        .company-meta i { color: var(--primary); }
+
+        .health-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .health-excellent { background: #E8F5E9; color: #2E7D32; }
+        .health-good      { background: #E3F2FD; color: #1565C0; }
+        .health-fair      { background: #FFF3E0; color: #E65100; }
+        .health-critical  { background: #FFEBEE; color: #B71C1C; }
+
+        /* ── SEARCH ── */
+        .search-container { margin-bottom: 1.1rem; }
+        .search-box { position: relative; }
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+        }
+        .search-box input {
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 0.92rem;
+            font-family: 'DM Sans', sans-serif;
+            background: #F8FAFC;
+            transition: all 0.25s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(25,118,210,0.1);
+        }
+        .search-count {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .no-results, .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--gray);
+        }
+        .no-results i, .empty-state i {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+            display: block;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            color: white;
+            padding: 0.55rem 1.35rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.25s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(25,118,210,0.35);
+            color: white;
+        }
+
+        /* ── MINI SPARKLINE ── */
+        .sparkline-wrap { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+        .sparkline { height: 28px; width: 80px; }
+
+        /* ── EMPTY STATE FOR CHARTS ── */
+        .chart-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            gap: 0.5rem;
+        }
+        .chart-empty i { font-size: 2.5rem; opacity: 0.4; }
+        .chart-empty p { font-size: 0.82rem; text-align: center; max-width: 200px; }
+
+        /* ── SCORE INDICATOR BADGES ── */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .anim { animation: fadeInUp 0.5s ease both; }
+        .anim-1 { animation-delay: 0.05s; }
+        .anim-2 { animation-delay: 0.1s; }
+        .anim-3 { animation-delay: 0.15s; }
+        .anim-4 { animation-delay: 0.2s; }
+        .anim-5 { animation-delay: 0.25s; }
+        .anim-6 { animation-delay: 0.3s; }
+
+        /* ── PERFORMANCE COMPARISON TABLE ── */
+        .perf-table-wrap { overflow-x: auto; }
+        .perf-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.85rem;
+        }
+        .perf-table thead tr th {
+            background: #F8FAFC;
+            color: #64748B;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid #E2E8F0;
+            white-space: nowrap;
+        }
+        .perf-table thead tr th:first-child { border-radius: 10px 0 0 0; }
+        .perf-table thead tr th:last-child  { border-radius: 0 10px 0 0; }
+        .perf-table tbody tr {
+            transition: background 0.18s;
+            cursor: pointer;
+        }
+        .perf-table tbody tr:hover td { background: #F0F7FF; }
+        .perf-table tbody td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #F1F5F9;
+            vertical-align: middle;
+        }
+        .perf-table tbody tr:last-child td { border-bottom: none; }
+        .rank-badge {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.82rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .rank-1 { background: #FFF8E1; color: #F9A825; border: 2px solid #FFD54F; }
+        .rank-2 { background: #ECEFF1; color: #607D8B; border: 2px solid #B0BEC5; }
+        .rank-3 { background: #FBE9E7; color: #BF360C; border: 2px solid #FFAB91; }
+        .rank-n { background: #F8FAFC; color: #94A3B8; border: 2px solid #E2E8F0; }
+        .score-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 120px;
+        }
+        .score-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #F1F5F9;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.8s cubic-bezier(.4,0,.2,1);
+        }
+        .score-num {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            min-width: 32px;
+            text-align: right;
+        }
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .trend-arrow { font-size: 1rem; font-weight: 800; }
+        .trend-up   { color: #2E7D32; }
+        .trend-down { color: #C62828; }
+        .trend-flat { color: #94A3B8; }
+        .perf-sort-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: #94A3B8;
+            font-size: 0.7rem;
+            margin-left: 3px;
+            transition: color 0.2s;
+        }
+        .perf-sort-btn:hover, .perf-sort-btn.active { color: var(--primary); }
+        .filter-tabs {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 0.3rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid #E2E8F0;
+            background: white;
+            color: var(--gray);
+            transition: all 0.2s;
+        }
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .top-performer-crown { color: #F9A825; font-size: 0.9rem; margin-left: 3px; }
+
+        /* Scrollbar */
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2,1fr); }
+            .charts-row-top { grid-template-columns: 1fr; }
+            .charts-row-middle { grid-template-columns: 1fr; }
+            .chart-card.full-width { grid-column: span 1; }
+        }
+        @media (max-width: 992px) {
+            .sidebar { display: none; }
+            .content-area { padding: 1rem; }
+            .stats-grid { grid-template-columns: repeat(2,1fr); }
+        }
+        @media (max-width: 576px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════ NAVBAR ═══════════ -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="bi bi-graph-up-arrow"></i> FinAnalyzer Pro
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                        <span style="width:30px;height:30px;background:rgba(255,255,255,0.2);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        {{ user.full_name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2 text-primary"></i>Profile</a></li>
+                        <li><hr class="dropdown-divider mx-2"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="main-container">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <div class="sidebar">
+        <div class="sidebar-label">Main</div>
+        <div class="sidebar-section">
+            <a class="nav-link active" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        </div>
+        {% if user.is_developer() %}
+        <div class="sidebar-label">Management</div>
+        <div class="sidebar-section">
+            <a class="nav-link" href="/company/add"><i class="bi bi-building-add"></i> Add Company</a>
+            <a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Manage Users</a>
+            <a class="nav-link" href="/admin/users/add"><i class="bi bi-person-plus"></i> Add User</a>
+        </div>
+        {% elif user.is_company_manager() %}
+        <div class="sidebar-label">Management</div>
+        <div class="sidebar-section">
+            <a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Manage Users</a>
+            <a class="nav-link" href="/admin/users/add"><i class="bi bi-person-plus"></i> Add User</a>
+        </div>
+        {% endif %}
+        {% if user.can_view_audit_log() %}
+        <div class="sidebar-label">Security</div>
+        <div class="sidebar-section">
+            <a class="nav-link" href="/admin/audit-log"><i class="bi bi-journal-check"></i> Audit Log</a>
+        </div>
+        {% endif %}
+        <div class="sidebar-label">Analytics</div>
+        {% if not user.is_developer() %}
+        <div class="sidebar-section">
+            <a class="nav-link" href="/compare"><i class="bi bi-bar-chart-steps"></i> Compare</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ═══════════ CONTENT ═══════════ -->
+    <div class="content-area">
+
+        <!-- ═══ WELCOME BANNER ═══ -->
+        <div class="welcome-banner anim anim-1">
+            <h2>
+                {% if user.is_developer() %}<i class="bi bi-code-slash me-2"></i>
+                {% elif user.is_company_manager() %}<i class="bi bi-building me-2"></i>
+                {% elif user.is_financial_analyst() %}<i class="bi bi-bar-chart-fill me-2"></i>
+                {% elif user.is_auditor() %}<i class="bi bi-search me-2"></i>
+                {% endif %}
+                Welcome back, {{ user.full_name }}!
+            </h2>
+            <p>
+                {% if user.is_developer() %}You manage the system structure — companies, users, and assignments. Financial data is handled by the assigned teams.
+                {% elif user.is_company_manager() %}Manage your assigned companies, team members, and track financial performance.
+                {% elif user.is_financial_analyst() %}Upload financial data, run analyses, and generate insights for your assigned companies.
+                {% elif user.is_auditor() %}Review financial reports, monitor company health, and access the audit trail for your assigned companies.
+                {% else %}Here's your financial analytics overview.{% endif %}
+            </p>
+            {% if user.is_developer() %}
+            <span class="badge-admin"><i class="bi bi-code-slash"></i> Developer</span>
+            {% elif user.is_company_manager() %}
+            <span class="badge-admin"><i class="bi bi-building"></i> Company Manager</span>
+            {% elif user.is_financial_analyst() %}
+            <span class="badge-admin"><i class="bi bi-bar-chart"></i> Financial Analyst</span>
+            {% elif user.is_auditor() %}
+            <span class="badge-admin"><i class="bi bi-search"></i> Auditor</span>
+            {% endif %}
+        </div>
+
+        <!-- ═══ ROLE-SPECIFIC STATS ═══ -->
+        <div class="stats-grid anim anim-2">
+
+            {% if user.is_developer() %}
+            <!-- DEVELOPER: System-level stats -->
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div class="stat-value" id="kpiCompanies">{{ stats.total_companies }}</div>
+                <div class="stat-label">Total Companies</div>
+                <div class="stat-change {% if stats.orphaned > 0 %}neutral{% else %}up{% endif %}">
+                    {% if stats.orphaned > 0 %}
+                    <i class="bi bi-exclamation-triangle"></i> {{ stats.orphaned }} unassigned
+                    {% else %}
+                    <i class="bi bi-check-circle"></i> All assigned
+                    {% endif %}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-value" id="kpiUsers">{{ stats.total_users }}</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> System-wide</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-value">{{ stats.total_analyses }}</div>
+                <div class="stat-label">Total Analyses</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> All companies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-person-check"></i></div>
+                <div class="stat-value">{{ stats.total_users - 1 if stats.total_users > 0 else 0 }}</div>
+                <div class="stat-label">Active Members</div>
+                <div class="stat-change up"><i class="bi bi-dot"></i> Excluding you</div>
+            </div>
+
+            {% elif user.is_company_manager() %}
+            <!-- MANAGER: Company + team stats -->
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div class="stat-value" id="kpiCompanies">{{ stats.my_companies }}</div>
+                <div class="stat-label">My Companies</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Assigned to you</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-value">{{ stats.total_team }}</div>
+                <div class="stat-label">Team Members</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Across your companies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-value">{{ stats.total_analyses }}</div>
+                <div class="stat-label">Total Analyses</div>
+                <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> Generated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+                <div class="stat-value">{{ stats.analyzed }}</div>
+                <div class="stat-label">Analyzed Companies</div>
+                <div class="stat-change {% if stats.analyzed == stats.my_companies %}up{% else %}neutral{% endif %}">
+                    {% if stats.analyzed == stats.my_companies %}<i class="bi bi-check-circle"></i> All analyzed
+                    {% else %}<i class="bi bi-dash"></i> {{ stats.my_companies - stats.analyzed }} pending
+                    {% endif %}
+                </div>
+            </div>
+
+            {% elif user.is_financial_analyst() %}
+            <!-- ANALYST: Upload + analysis stats -->
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div class="stat-value" id="kpiCompanies">{{ stats.my_companies }}</div>
+                <div class="stat-label">My Companies</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Assigned to you</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-cloud-upload-fill"></i></div>
+                <div class="stat-value">{{ stats.total_uploads }}</div>
+                <div class="stat-label">Data Uploads</div>
+                <div class="stat-change up"><i class="bi bi-dot"></i> Total periods</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-value">{{ stats.total_analyses }}</div>
+                <div class="stat-label">Analyses Run</div>
+                <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> Generated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-value" style="font-size:1.4rem;">{{ stats.latest_date }}</div>
+                <div class="stat-label">Last Analysis</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Most recent</div>
+            </div>
+
+            {% elif user.is_auditor() %}
+            <!-- AUDITOR: Review + risk stats -->
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div class="stat-value" id="kpiCompanies">{{ stats.my_companies }}</div>
+                <div class="stat-label">Assigned Companies</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Under review</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
+                <div class="stat-value">{{ stats.total_periods }}</div>
+                <div class="stat-label">Financial Periods</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Available to review</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-value">{{ stats.total_analyses }}</div>
+                <div class="stat-label">Analyses Available</div>
+                <div class="stat-change up"><i class="bi bi-dot"></i> Read access</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div class="stat-value">{{ stats.critical }}</div>
+                <div class="stat-label">Critical Companies</div>
+                <div class="stat-change {% if stats.critical > 0 %}neutral{% else %}up{% endif %}">
+                    {% if stats.critical > 0 %}<i class="bi bi-exclamation-triangle"></i> Need attention
+                    {% else %}<i class="bi bi-check-circle"></i> All healthy
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- ═══ ROLE-SPECIFIC TOOLS ═══ -->
+        {% if user.is_developer() %}
+        <div class="admin-tools anim anim-3" style="background:linear-gradient(135deg,#EDE7F6,#E8EAF6);border-color:#C5CAE9;">
+            <h5 style="color:#4527A0;"><i class="bi bi-code-slash"></i> Developer Tools — System Management</h5>
+            <div class="tools-grid">
+                <a href="/company/add"     class="tool-btn" style="color:#4527A0;border-color:#C5CAE9;"><i class="bi bi-building-add"></i><span>Add Company</span></a>
+                <a href="/admin/users"     class="tool-btn" style="color:#4527A0;border-color:#C5CAE9;"><i class="bi bi-people-fill"></i><span>Manage Users</span></a>
+                <a href="/admin/users/add" class="tool-btn" style="color:#4527A0;border-color:#C5CAE9;"><i class="bi bi-person-plus-fill"></i><span>Add User</span></a>
+                <a href="/admin/audit-log" class="tool-btn" style="color:#4527A0;border-color:#C5CAE9;"><i class="bi bi-journal-check"></i><span>Audit Log</span></a>
+            </div>
+        </div>
+
+        {% elif user.is_company_manager() %}
+        <div class="admin-tools anim anim-3" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7;">
+            <h5 style="color:#1B5E20;"><i class="bi bi-building"></i> Manager Tools</h5>
+            <div class="tools-grid">
+                <a href="/admin/users"     class="tool-btn" style="color:#1B5E20;border-color:#A5D6A7;"><i class="bi bi-people-fill"></i><span>Manage Team</span></a>
+                <a href="/admin/users/add" class="tool-btn" style="color:#1B5E20;border-color:#A5D6A7;"><i class="bi bi-person-plus-fill"></i><span>Add Member</span></a>
+                <a href="/compare"         class="tool-btn" style="color:#1B5E20;border-color:#A5D6A7;"><i class="bi bi-bar-chart-steps"></i><span>Compare</span></a>
+            </div>
+        </div>
+
+        {% elif user.is_financial_analyst() %}
+        <div class="admin-tools anim anim-3" style="background:linear-gradient(135deg,#E3F2FD,#E8EAF6);border-color:#90CAF9;">
+            <h5 style="color:#0D47A1;"><i class="bi bi-bar-chart-fill"></i> Analyst Tools</h5>
+            <div class="tools-grid">
+                {% for company in companies %}
+                <a href="/company/{{ company.id }}/upload" class="tool-btn" style="color:#0D47A1;border-color:#90CAF9;">
+                    <i class="bi bi-cloud-upload-fill"></i><span>Upload: {{ company.name[:20] }}</span>
+                </a>
+                {% endfor %}
+                <a href="/compare" class="tool-btn" style="color:#0D47A1;border-color:#90CAF9;"><i class="bi bi-bar-chart-steps"></i><span>Compare</span></a>
+            </div>
+        </div>
+
+        {% elif user.is_auditor() %}
+        <div class="admin-tools anim anim-3" style="background:linear-gradient(135deg,#FFF3E0,#FBE9E7);border-color:#FFCC80;">
+            <h5 style="color:#BF360C;"><i class="bi bi-search"></i> Auditor Tools</h5>
+            <div class="tools-grid">
+                <a href="/admin/audit-log" class="tool-btn" style="color:#BF360C;border-color:#FFCC80;"><i class="bi bi-journal-check"></i><span>Audit Log</span></a>
+                <a href="/compare"         class="tool-btn" style="color:#BF360C;border-color:#FFCC80;"><i class="bi bi-bar-chart-steps"></i><span>Compare</span></a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- KPI Stats -->
+        <div class="stats-grid">
+            <div class="stat-card anim anim-2">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div class="stat-value" id="kpiCompanies">{{ companies|length }}</div>
+                <div class="stat-label">{% if user.is_developer() %}Total Companies{% else %}My Companies{% endif %}</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> All active</div>
+            </div>
+            <div class="stat-card anim anim-3">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-value" id="kpiAnalyses">{{ recent_analyses|length }}</div>
+                <div class="stat-label">Recent Analyses</div>
+                <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> Updated</div>
+            </div>
+            <div class="stat-card anim anim-4">
+                <div class="stat-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
+                <div class="stat-value">{{ (recent_analyses|length * 1.5)|int }}</div>
+                <div class="stat-label">Total Reports</div>
+                <div class="stat-change neutral"><i class="bi bi-dot"></i> Generated</div>
+            </div>
+            <div class="stat-card anim anim-5">
+                <div class="stat-icon"><i class="bi bi-activity"></i></div>
+                <div class="stat-value">{{ companies|length + recent_analyses|length }}</div>
+                <div class="stat-label">Total Activities</div>
+                <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> This period</div>
+            </div>
+        </div>
+
+        <!-- ═══ CHARTS ROW 1: Donut + Bar ═══ -->
+        <div class="section-title-row anim anim-3">
+            <h5>📊 Overview Charts</h5>
+            <div class="section-divider"></div>
+        </div>
+
+        <div class="charts-row-top anim anim-3">
+            <!-- Industry Donut -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title"><i class="bi bi-pie-chart-fill"></i> Industry Mix</div>
+                        <div class="chart-subtitle">Portfolio distribution</div>
+                    </div>
+                </div>
+                <div class="chart-container-sm"><canvas id="industryChart"></canvas></div>
+            </div>
+
+            <!-- Health Score Bar -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title"><i class="bi bi-bar-chart-fill"></i> Health Score Overview</div>
+                        <div class="chart-subtitle">Company financial health scores</div>
+                    </div>
+                    <div class="chart-tabs">
+                        <span class="chart-tab active" onclick="switchHealthView('bar',this)">Bar</span>
+                        <span class="chart-tab" onclick="switchHealthView('rank',this)">Rank</span>
+                    </div>
+                </div>
+                <div class="chart-container"><canvas id="healthScoreChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ═══ CHARTS ROW 2: Trend + Radar ═══ -->
+        <div class="charts-row-middle anim anim-4">
+            <!-- Trend Line -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title"><i class="bi bi-graph-up-arrow"></i> Performance Trends</div>
+                        <div class="chart-subtitle">Score evolution over time</div>
+                    </div>
+                    <div class="chart-tabs">
+                        <span class="chart-tab active" onclick="switchTrend('health',this)">Health</span>
+                        <span class="chart-tab" onclick="switchTrend('liquidity',this)">Liquidity</span>
+                        <span class="chart-tab" onclick="switchTrend('profitability',this)">Profit</span>
+                    </div>
+                </div>
+                <div class="chart-container-tall"><canvas id="trendChart"></canvas></div>
+            </div>
+
+            <!-- Radar / Spider -->
+            <div class="chart-card radar-card">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title"><i class="bi bi-pentagon-fill"></i> Category Radar</div>
+                        <div class="chart-subtitle">Multi-dimension comparison</div>
+                    </div>
+                    <div id="radarCompanySelect" style="max-width:140px;">
+                        <select id="radarSelect" class="form-select form-select-sm" style="font-size:0.78rem;border-radius:8px;" onchange="buildRadarChart()"></select>
+                    </div>
+                </div>
+                <div class="chart-container-tall"><canvas id="radarChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ═══ HEATMAP ═══ -->
+        <div class="section-title-row anim anim-5">
+            <h5>🔥 Financial Health Heatmap</h5>
+            <div class="section-divider"></div>
+        </div>
+
+        <div class="chart-card anim anim-5" style="margin-bottom:1.75rem;">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title"><i class="bi bi-grid-3x3-gap-fill"></i> Category Score Heatmap</div>
+                    <div class="chart-subtitle">Liquidity · Profitability · Solvency · Efficiency by company</div>
+                </div>
+                <div class="chart-tabs">
+                    <span class="chart-tab active" onclick="switchHeatmap('latest',this)">Latest</span>
+                    <span class="chart-tab" onclick="switchHeatmap('avg',this)">Average</span>
+                </div>
+            </div>
+            <div class="heatmap-wrapper" id="heatmapWrapper">
+                <!-- Built by JS -->
+            </div>
+            <div class="heatmap-legend">
+                <span style="font-weight:600;margin-right:0.25rem;">Legend:</span>
+                <div class="legend-item"><div class="legend-dot" style="background:#1B5E20"></div> Excellent (80-100)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#388E3C"></div> Good (60-79)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#1976D2"></div> Fair (40-59)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#F57C00"></div> Weak (20-39)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#C62828"></div> Critical (0-19)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ECEFF1"></div> N/A</div>
+            </div>
+        </div>
+
+        <!-- ═══ PERFORMANCE COMPARISON ═══ -->
+        <div class="section-title-row anim anim-5" style="margin-top:1.75rem;">
+            <h5>🏆 Company Performance Ranking</h5>
+            <div class="section-divider"></div>
+        </div>
+
+        <div class="section-card anim anim-5" style="margin-bottom:1.75rem;">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="bi bi-trophy-fill" style="color:#F9A825;"></i>
+                    Side-by-Side Comparison
+                    <span class="badge bg-primary ms-1" style="border-radius:8px;font-size:0.75rem;" id="perfCount">{{ companies|length }}</span>
+                </div>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <div class="filter-tabs" id="perfFilterTabs">
+                        <span class="filter-tab active" onclick="filterPerf('all', this)">All</span>
+                        <span class="filter-tab" onclick="filterPerf('excellent', this)">&#9989; Excellent</span>
+                        <span class="filter-tab" onclick="filterPerf('good', this)">&#128309; Good</span>
+                        <span class="filter-tab" onclick="filterPerf('fair', this)">&#9888;&#65039; Fair</span>
+                        <span class="filter-tab" onclick="filterPerf('critical', this)">&#128308; Critical</span>
+                    </div>
+                    <a href="/compare" class="btn-gradient" style="font-size:0.82rem;padding:0.4rem 1rem;">
+                        <i class="bi bi-bar-chart-steps"></i> Deep Compare
+                    </a>
+                </div>
+            </div>
+
+            <div id="perfTableWrap" class="perf-table-wrap">
+                <table class="perf-table" id="perfTable">
+                    <thead>
+                        <tr>
+                            <th style="width:44px; text-align:center;">#</th>
+                            <th>Company
+                                <button class="perf-sort-btn" onclick="sortPerf('name', this)" title="Sort by name"><i class="bi bi-arrow-down-up"></i></button>
+                            </th>
+                            <th>Industry</th>
+                            <th>
+                                Overall Health
+                                <button class="perf-sort-btn active" onclick="sortPerf('health', this)" title="Sort by health"><i class="bi bi-arrow-down-up"></i></button>
+                            </th>
+                            <th>Liquidity</th>
+                            <th>Profitability</th>
+                            <th>Solvency</th>
+                            <th>Efficiency</th>
+                            <th style="text-align:center;">Trend</th>
+                            <th style="text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="perfTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+                <div id="perfEmpty" style="display:none; padding:2.5rem; text-align:center; color:#94A3B8;">
+                    <i class="bi bi-inbox" style="font-size:2.5rem; display:block; margin-bottom:0.75rem; opacity:0.4;"></i>
+                    <p>No companies match the selected filter.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ COMPANIES LIST ═══ -->
+        <div class="section-title-row anim anim-6">
+            <h5>🏢 {% if user.is_developer() %}All Companies{% else %}Your Companies{% endif %}</h5>
+            <div class="section-divider"></div>
+        </div>
+
+        <div class="section-card anim anim-6">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="bi bi-building"></i>
+                    Company List
+                    <span class="badge bg-primary ms-1" style="border-radius:8px;font-size:0.75rem;">{{ companies|length }}</span>
+                </div>
+                {% if user.is_developer() %}
+                <a href="/company/add" class="btn-gradient"><i class="bi bi-plus-circle"></i> Add New</a>
+                {% endif %}
+            </div>
+
+            {% if companies %}
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search companies by name or industry…">
+                    <span class="search-count" id="searchCount">{{ companies|length }}</span>
+                </div>
+            </div>
+
+            <div id="companiesList">
+                {% for company in companies %}
+                <div class="company-card"
+                     data-company-name="{{ company.name|lower }}"
+                     data-company-industry="{{ (company.industry or '')|lower }}"
+                     onclick="window.location.href='/company/{{ company.id }}'">
+                    <div>
+                        <div class="company-name">
+                            <i class="bi bi-building-fill me-2 text-primary" style="font-size:0.9rem;"></i>{{ company.name }}
+                        </div>
+                        <div class="company-meta">
+                            <span><i class="bi bi-tag"></i> {{ company.industry or 'N/A' }}</span>
+                            {% if user.is_developer() %}
+                            <span><i class="bi bi-people"></i> {{ company.users|length }} user(s)</span>
+                            {% endif %}
+                            <span>
+                                <i class="bi bi-clock-history"></i>
+                                <span class="badge bg-light text-primary" style="border-radius:6px;font-size:0.72rem;font-weight:600;">
+                                    {{ company.financial_data|length }} period(s)
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    {% if company.financial_data and company.financial_data[-1].analyses %}
+                        {% set score = company.financial_data[-1].analyses[-1].ai_analysis.get('overall', {}).get('health_score', 0) %}
+                        <span class="health-pill {% if score >= 75 %}health-excellent{% elif score >= 55 %}health-good{% elif score >= 35 %}health-fair{% else %}health-critical{% endif %}">
+                            <i class="bi bi-{% if score >= 75 %}check{% elif score >= 55 %}info{% elif score >= 35 %}exclamation{% else %}x{% endif %}-circle-fill"></i>
+                            {{ score }}/100
+                        </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="no-results" id="noResults" style="display:none;">
+                <i class="bi bi-search"></i>
+                <p>No companies match your search.</p>
+                <button class="btn-gradient" onclick="document.getElementById('searchInput').value='';searchCompanies();">
+                    <i class="bi bi-arrow-counterclockwise"></i> Clear
+                </button>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>{% if user.is_developer() %}No companies yet. Add your first one!{% else %}No companies assigned. Contact administrator.{% endif %}</p>
+                {% if user.is_developer() %}<a href="/company/add" class="btn-gradient mt-2"><i class="bi bi-plus-circle"></i> Add Company</a>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div><!-- /content-area -->
+</div><!-- /main-container -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA (injected by Flask)
+// ═══════════════════════════════════════════════════════
+const companiesData = {{ companies_chart_data | tojson | safe }};
+
+// ── Global defaults ──────────────────────────────────
+Chart.defaults.font.family = "'DM Sans', Tahoma, Geneva, Verdana, sans-serif";
+Chart.defaults.color = '#64748B';
+
+const PALETTE = ['#1976D2','#2E7D32','#F57C00','#7B1FA2','#00838F','#AD1457','#558B2F','#37474F','#C62828','#F9A825'];
+
+// ═══════════════════════════════════════════════════════
+// 1. INDUSTRY DONUT
+// ═══════════════════════════════════════════════════════
+function buildIndustryChart() {
+    const counts = {};
+    companiesData.forEach(c => {
+        const ind = c.industry || 'Other';
+        counts[ind] = (counts[ind] || 0) + 1;
+    });
+    if (Object.keys(counts).length === 0) {
+        showEmpty('industryChart');
+        return;
+    }
+    const labels = Object.keys(counts);
+    new Chart(document.getElementById('industryChart'), {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: Object.values(counts),
+                backgroundColor: PALETTE.slice(0, labels.length),
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 14,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { boxWidth: 12, padding: 14, font: { size: 11 } }
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: c => `  ${c.label}: ${c.raw} compan${c.raw > 1 ? 'ies' : 'y'}`
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// 2. HEALTH SCORE BAR
+// ═══════════════════════════════════════════════════════
+let healthChart = null;
+function buildHealthChart(horizontal) {
+    if (healthChart) healthChart.destroy();
+    if (companiesData.length === 0) { showEmpty('healthScoreChart'); return; }
+    const names  = companiesData.map(c => c.name.length > 18 ? c.name.substring(0,16) + '…' : c.name);
+    const scores = companiesData.map(c => c.health_score || 0);
+    const colors = scores.map(s => s >= 75 ? '#388E3C' : s >= 55 ? '#1976D2' : s >= 35 ? '#F57C00' : '#C62828');
+    const bgColors = scores.map(s => s >= 75 ? '#E8F5E9' : s >= 55 ? '#E3F2FD' : s >= 35 ? '#FFF3E0' : '#FFEBEE');
+
+    healthChart = new Chart(document.getElementById('healthScoreChart'), {
+        type: 'bar',
+        data: {
+            labels: names,
+            datasets: [{
+                label: 'Health Score',
+                data: scores,
+                backgroundColor: colors,
+                borderRadius: 8,
+                borderSkipped: false,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: horizontal ? 'y' : 'x',
+            scales: {
+                x: {
+                    grid: { color: '#F1F5F9', drawBorder: false },
+                    max: horizontal ? 100 : undefined,
+                    ticks: { font: { size: 10 } }
+                },
+                y: {
+                    grid: { color: horizontal ? 'transparent' : '#F1F5F9', drawBorder: false },
+                    max: horizontal ? undefined : 100,
+                    ticks: { font: { size: 10 } }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: c => ` Score: ${c.raw}/100`,
+                        afterLabel: c => {
+                            const s = c.raw;
+                            return s >= 75 ? ' ✅ Excellent' : s >= 55 ? ' 🔵 Good' : s >= 35 ? ' ⚠️ Fair' : ' 🔴 Critical';
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        threshold: {
+                            type: 'line',
+                            [horizontal ? 'xMin' : 'yMin']: 50,
+                            [horizontal ? 'xMax' : 'yMax']: 50,
+                            borderColor: 'rgba(0,0,0,0.12)',
+                            borderDash: [5, 5],
+                            borderWidth: 1.5,
+                            label: {
+                                display: true,
+                                content: 'Threshold 50',
+                                font: { size: 10 },
+                                color: '#94a3b8',
+                                position: 'start'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+function switchHealthView(type, btn) {
+    btn.closest('.chart-card').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    buildHealthChart(type === 'rank');
+}
+
+// ═══════════════════════════════════════════════════════
+// 3. TREND LINE
+// ═══════════════════════════════════════════════════════
+let trendChart = null;
+function buildTrendChart(metric) {
+    if (trendChart) trendChart.destroy();
+
+    const allPeriods = new Set();
+    companiesData.forEach(c => (c.analyses || []).forEach(a => allPeriods.add(a.period_label)));
+    const periods = Array.from(allPeriods).sort();
+    const ctx = document.getElementById('trendChart');
+
+    if (periods.length === 0) {
+        ctx.parentElement.innerHTML = `<div class="chart-empty">
+            <i class="bi bi-bar-chart"></i>
+            <p>Upload financial data to see performance trends</p>
+        </div>`;
+        return;
+    }
+
+    const key = { health: 'health_score', liquidity: 'liquidity_score', profitability: 'profitability_score' }[metric];
+    const datasets = companiesData.filter(c => c.analyses && c.analyses.length > 0).map((c, i) => ({
+        label: c.name,
+        data: periods.map(p => {
+            const a = (c.analyses || []).find(x => x.period_label === p);
+            return a ? (a[key] ?? null) : null;
+        }),
+        borderColor: PALETTE[i % PALETTE.length],
+        backgroundColor: PALETTE[i % PALETTE.length] + '18',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: PALETTE[i % PALETTE.length],
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: false,
+        spanGaps: true
+    }));
+
+    trendChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: periods, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: {
+                    grid: { color: '#F1F5F9', drawBorder: false },
+                    ticks: { font: { size: 10 } }
+                },
+                y: {
+                    grid: { color: '#F1F5F9', drawBorder: false },
+                    min: 0,
+                    max: 100,
+                    ticks: { font: { size: 10 } },
+                    title: {
+                        display: true,
+                        text: metric.charAt(0).toUpperCase() + metric.slice(1) + ' Score (/100)',
+                        font: { size: 10 },
+                        color: '#94a3b8'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, padding: 14, font: { size: 11 } }
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: c => ` ${c.dataset.label}: ${c.raw ?? 'N/A'}/100`
+                    }
+                }
+            }
+        }
+    });
+}
+function switchTrend(metric, btn) {
+    btn.closest('.chart-card').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    buildTrendChart(metric);
+}
+
+// ═══════════════════════════════════════════════════════
+// 4. RADAR / SPIDER CHART
+// ═══════════════════════════════════════════════════════
+let radarChart = null;
+function buildRadarChart() {
+    if (radarChart) radarChart.destroy();
+
+    const select = document.getElementById('radarSelect');
+    const selected = parseInt(select.value);
+    const companiesToShow = isNaN(selected)
+        ? companiesData.slice(0, 3)
+        : [companiesData[selected]];
+
+    const ctx = document.getElementById('radarChart');
+    if (companiesToShow.length === 0 || !companiesToShow[0]) {
+        ctx.parentElement.innerHTML = `<div class="chart-empty"><i class="bi bi-pentagon"></i><p>No data available for radar chart</p></div>`;
+        return;
+    }
+
+    const CATEGORIES = ['Liquidity', 'Profitability', 'Solvency', 'Efficiency', 'Overall'];
+
+    const datasets = companiesToShow.map((c, i) => {
+        const lastA = c.analyses && c.analyses.length > 0 ? c.analyses[c.analyses.length - 1] : null;
+        const scores = lastA ? [
+            lastA.liquidity_score  || 0,
+            lastA.profitability_score || 0,
+            lastA.solvency_score   || 0,
+            lastA.efficiency_score || 0,
+            lastA.health_score     || c.health_score || 0
+        ] : [0, 0, 0, 0, c.health_score || 0];
+        return {
+            label: c.name,
+            data: scores,
+            borderColor: PALETTE[i % PALETTE.length],
+            backgroundColor: PALETTE[i % PALETTE.length] + '22',
+            borderWidth: 2,
+            pointBackgroundColor: PALETTE[i % PALETTE.length],
+            pointRadius: 4
+        };
+    });
+
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: { labels: CATEGORIES, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 25,
+                        font: { size: 9 },
+                        backdropColor: 'transparent'
+                    },
+                    grid: { color: '#E2E8F0' },
+                    pointLabels: { font: { size: 11, weight: '600' } },
+                    angleLines: { color: '#E2E8F0' }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, padding: 14, font: { size: 11 } }
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: { label: c => ` ${c.dataset.label} — ${c.label}: ${c.raw}/100` }
+                }
+            }
+        }
+    });
+}
+
+function populateRadarSelect() {
+    const select = document.getElementById('radarSelect');
+    select.innerHTML = `<option value="">All (top 3)</option>`;
+    companiesData.forEach((c, i) => {
+        select.innerHTML += `<option value="${i}">${c.name.length > 18 ? c.name.substring(0,16)+'…' : c.name}</option>`;
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+// 5. HEATMAP
+// ═══════════════════════════════════════════════════════
+function getHeatmapLevel(score) {
+    if (score === null || score === undefined || score === 0) return 0;
+    if (score >= 80) return 5;
+    if (score >= 60) return 4;
+    if (score >= 40) return 3;
+    if (score >= 20) return 2;
+    return 1;
+}
+
+function buildHeatmap(mode) {
+    const wrapper = document.getElementById('heatmapWrapper');
+    if (!companiesData.length) {
+        wrapper.innerHTML = `<div class="chart-empty" style="padding:2rem;"><i class="bi bi-grid-3x3-gap"></i><p>No company data to display</p></div>`;
+        return;
+    }
+
+    const CATS = [
+        { key: 'liquidity_score',    label: 'Liquidity' },
+        { key: 'profitability_score',label: 'Profitability' },
+        { key: 'solvency_score',     label: 'Solvency' },
+        { key: 'efficiency_score',   label: 'Efficiency' },
+        { key: 'health_score',       label: 'Overall Health' }
+    ];
+
+    // Compute values for each company × category
+    const rows = companiesData.map(c => {
+        const analyses = c.analyses || [];
+        const row = { name: c.name };
+
+        CATS.forEach(cat => {
+            if (analyses.length === 0) {
+                row[cat.key] = cat.key === 'health_score' ? (c.health_score || null) : null;
+            } else if (mode === 'latest') {
+                const last = analyses[analyses.length - 1];
+                row[cat.key] = cat.key === 'health_score'
+                    ? (last.health_score || c.health_score || null)
+                    : (last[cat.key] || null);
+            } else {
+                // average
+                const vals = analyses.map(a => a[cat.key]).filter(v => v !== null && v !== undefined && v > 0);
+                row[cat.key] = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+                if (cat.key === 'health_score') {
+                    const hVals = analyses.map(a => a.health_score).filter(v => v > 0);
+                    row[cat.key] = hVals.length ? Math.round(hVals.reduce((a, b) => a + b, 0) / hVals.length) : (c.health_score || null);
+                }
+            }
+        });
+        return row;
+    });
+
+    let html = `<table class="heatmap-table"><thead><tr>
+        <th class="row-header">Company</th>
+        ${CATS.map(c => `<th>${c.label}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+    rows.forEach(row => {
+        html += `<tr>
+            <td style="padding:0.4rem 0.5rem;font-weight:600;font-size:0.82rem;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;" title="${row.name}">${row.name}</td>
+            ${CATS.map(cat => {
+                const val = row[cat.key];
+                const lvl = getHeatmapLevel(val);
+                const display = val !== null && val > 0 ? val : '–';
+                return `<td><div class="hm-cell level-${lvl}" title="${cat.label}: ${display}">${display}</div></td>`;
+            }).join('')}
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    wrapper.innerHTML = html;
+}
+
+function switchHeatmap(mode, btn) {
+    btn.closest('.chart-card').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    buildHeatmap(mode);
+}
+
+// ═══════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════
+function searchCompanies() {
+    const term = document.getElementById('searchInput').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('#companiesList .company-card');
+    let v = 0;
+    cards.forEach(c => {
+        const show = c.dataset.companyName.includes(term) || c.dataset.companyIndustry.includes(term);
+        c.style.display = show ? 'flex' : 'none';
+        if (show) v++;
+    });
+    document.getElementById('searchCount').textContent = v;
+    document.getElementById('companiesList').style.display = v ? 'block' : 'none';
+    const nr = document.getElementById('noResults');
+    if (nr) nr.style.display = v ? 'none' : 'block';
+}
+
+// Helper: show empty placeholder on canvas
+function showEmpty(canvasId) {
+    const c = document.getElementById(canvasId);
+    if (!c) return;
+    c.parentElement.innerHTML = `<div class="chart-empty"><i class="bi bi-bar-chart"></i><p>No data available yet</p></div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// 6. PERFORMANCE COMPARISON TABLE
+// ═══════════════════════════════════════════════════════
+let perfData = [];
+let perfSortKey = 'health';
+let perfSortDir = -1; // -1 = desc, 1 = asc
+let perfFilter = 'all';
+
+function buildPerfData() {
+    perfData = companiesData.map((c, idx) => {
+        const analyses = c.analyses || [];
+        const last = analyses.length > 0 ? analyses[analyses.length - 1] : null;
+        const prev = analyses.length > 1 ? analyses[analyses.length - 2] : null;
+
+        const health       = last ? (last.health_score       || c.health_score || 0) : (c.health_score || 0);
+        const liquidity    = last ? (last.liquidity_score    || 0) : 0;
+        const profitability= last ? (last.profitability_score|| 0) : 0;
+        const solvency     = last ? (last.solvency_score     || 0) : 0;
+        const efficiency   = last ? (last.efficiency_score   || 0) : 0;
+
+        const prevHealth = prev ? (prev.health_score || 0) : null;
+        let trend = 'flat';
+        if (prevHealth !== null) {
+            if (health - prevHealth > 3) trend = 'up';
+            else if (prevHealth - health > 3) trend = 'down';
+        }
+
+        let status = 'critical';
+        if (health >= 75) status = 'excellent';
+        else if (health >= 55) status = 'good';
+        else if (health >= 35) status = 'fair';
+
+        return {
+            id: c.id,
+            name: c.name,
+            industry: c.industry || 'N/A',
+            health, liquidity, profitability, solvency, efficiency,
+            trend, status,
+            periods: analyses.length
+        };
+    });
+}
+
+function getScoreColor(score) {
+    if (score >= 75) return '#2E7D32';
+    if (score >= 55) return '#1976D2';
+    if (score >= 35) return '#F57C00';
+    return '#C62828';
+}
+
+function scoreBarHTML(score) {
+    if (!score) return '<span style="color:#CBD5E1;font-size:0.78rem;">—</span>';
+    const color = getScoreColor(score);
+    return `<div class="score-bar-wrap">
+        <div class="score-bar-bg">
+            <div class="score-bar-fill" style="width:${score}%;background:${color};"></div>
+        </div>
+        <span class="score-num" style="color:${color};">${Math.round(score)}</span>
+    </div>`;
+}
+
+function renderPerfTable() {
+    let rows = [...perfData];
+
+    // Filter
+    if (perfFilter !== 'all') {
+        rows = rows.filter(r => r.status === perfFilter);
+    }
+
+    // Sort
+    rows.sort((a, b) => {
+        let va = a[perfSortKey], vb = b[perfSortKey];
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        if (va < vb) return perfSortDir;
+        if (va > vb) return -perfSortDir;
+        return 0;
+    });
+
+    document.getElementById('perfCount').textContent = rows.length;
+
+    const tbody = document.getElementById('perfTableBody');
+    const emptyEl = document.getElementById('perfEmpty');
+
+    if (rows.length === 0) {
+        tbody.innerHTML = '';
+        emptyEl.style.display = 'block';
+        return;
+    }
+    emptyEl.style.display = 'none';
+
+    const statusLabels = {
+        excellent: { bg: '#E8F5E9', color: '#2E7D32', label: 'Excellent' },
+        good:      { bg: '#E3F2FD', color: '#1565C0', label: 'Good' },
+        fair:      { bg: '#FFF3E0', color: '#E65100', label: 'Fair' },
+        critical:  { bg: '#FFEBEE', color: '#B71C1C', label: 'Critical' }
+    };
+
+    tbody.innerHTML = rows.map((r, i) => {
+        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-n';
+        const st = statusLabels[r.status];
+        const crown = i === 0 && r.health > 0 ? '<span class="top-performer-crown" title="Top Performer">&#128081;</span>' : '';
+
+        const trendHTML = r.trend === 'up'
+            ? `<span class="trend-arrow trend-up" title="Improving">&#8593;</span>`
+            : r.trend === 'down'
+            ? `<span class="trend-arrow trend-down" title="Declining">&#8595;</span>`
+            : `<span class="trend-arrow trend-flat" title="Stable">&#8722;</span>`;
+
+        return `<tr onclick="window.location.href='/company/${r.id}'" title="View ${r.name}">
+            <td style="text-align:center;"><span class="rank-badge ${rankClass}">${i + 1}</span></td>
+            <td>
+                <div style="font-weight:700;color:#0f172a;font-size:0.92rem;">${r.name}${crown}</div>
+                <div style="font-size:0.75rem;color:#94A3B8;margin-top:2px;">
+                    <i class="bi bi-clock-history"></i> ${r.periods} period${r.periods !== 1 ? 's' : ''}
+                </div>
+            </td>
+            <td>
+                <span class="category-pill" style="background:#F1F5F9;color:#475569;">
+                    <i class="bi bi-tag" style="font-size:0.65rem;"></i> ${r.industry}
+                </span>
+            </td>
+            <td>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    ${scoreBarHTML(r.health)}
+                    <span class="category-pill" style="background:${st.bg};color:${st.color};">${st.label}</span>
+                </div>
+            </td>
+            <td>${scoreBarHTML(r.liquidity)}</td>
+            <td>${scoreBarHTML(r.profitability)}</td>
+            <td>${scoreBarHTML(r.solvency)}</td>
+            <td>${scoreBarHTML(r.efficiency)}</td>
+            <td style="text-align:center;">${trendHTML}</td>
+            <td style="text-align:center;">
+                <a href="/company/${r.id}" class="btn-gradient" style="font-size:0.75rem;padding:0.3rem 0.75rem;" onclick="event.stopPropagation()">
+                    <i class="bi bi-eye"></i> View
+                </a>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function sortPerf(key, btn) {
+    if (perfSortKey === key) {
+        perfSortDir *= -1;
+    } else {
+        perfSortKey = key;
+        perfSortDir = -1;
+    }
+    document.querySelectorAll('.perf-sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPerfTable();
+}
+
+function filterPerf(filter, btn) {
+    perfFilter = filter;
+    document.querySelectorAll('#perfFilterTabs .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderPerfTable();
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    buildIndustryChart();
+    buildHealthChart(false);
+    buildTrendChart('health');
+    populateRadarSelect();
+    buildRadarChart();
+    buildHeatmap('latest');
+    buildPerfData();
+    renderPerfTable();
+
+    // Search
+    const si = document.getElementById('searchInput');
+    if (si) {
+        si.addEventListener('input', searchCompanies);
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); si.focus(); }
+        });
+    }
+
+    // Animate stat counters
+    document.querySelectorAll('.stat-value[id]').forEach(el => {
+        const target = parseInt(el.textContent);
+        if (isNaN(target)) return;
+        let current = 0;
+        const step = Math.max(1, Math.ceil(target / 25));
+        const interval = setInterval(() => {
+            current = Math.min(current + step, target);
+            el.textContent = current;
+            if (current >= target) clearInterval(interval);
+        }, 40);
+    });
+});
+</script>
+</body>
+</html>

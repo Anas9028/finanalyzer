@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Comparison Results - FinAnalyzer Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+        }
+
+        .comparison-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .vs-badge {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+
+        .entity-box {
+            background: linear-gradient(135deg, #E3F2FD, #ffffff);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #1976D2;
+        }
+
+        .winner-badge {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .metric-row {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .metric-row:hover {
+            border-color: #1976D2;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .metric-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1976D2;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .better {
+            color: #4CAF50;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .worse {
+            color: #f44336;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .increase-badge {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .decrease-badge {
+            background: linear-gradient(135deg, #f44336, #ef5350);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        .stable-badge {
+            background: linear-gradient(135deg, #9E9E9E, #BDBDBD);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .values-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .value-box {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .value-label {
+            font-size: 0.85rem;
+            color: #757575;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .value-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1976D2;
+        }
+
+        .arrow-icon {
+            font-size: 2rem;
+            color: #1976D2;
+        }
+
+        .ai-analysis-box {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-left: 4px solid #F57C00;
+        }
+
+        .ai-analysis-box h6 {
+            color: #E65100;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ai-analysis-box p {
+            color: #5d4037;
+            line-height: 1.7;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .ai-insight-box {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .ai-insight-box h6 {
+            color: #1B5E20;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1976D2;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .change-indicator {
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .improvement-icon {
+            color: #4CAF50;
+            font-size: 1.5rem;
+        }
+
+        .decline-icon {
+            color: #f44336;
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .recommendation-pill {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #0D47A1;
+            border: 2px solid #1976D2;
+        }
+
+        .impact-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .impact-high {
+            background: #FFEBEE;
+            color: #C62828;
+            border: 1px solid #EF5350;
+        }
+
+        .impact-medium {
+            background: #FFF3E0;
+            color: #E65100;
+            border: 1px solid #FF9800;
+        }
+
+        .impact-low {
+            background: #E8F5E9;
+            color: #1B5E20;
+            border: 1px solid #4CAF50;
+        }
+
+        /* ── PDF Export Card ───────────────────────── */
+        .pdf-export-card {
+            background: linear-gradient(135deg, #0D47A1 0%, #1565C0 55%, #1976D2 100%);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin: 2.5rem 0 1rem 0;
+            color: white;
+            box-shadow: 0 16px 48px rgba(13, 71, 161, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+        .pdf-export-card::before {
+            content: '';
+            position: absolute;
+            top: -70px; right: -70px;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .pdf-export-card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; left: -50px;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .pdf-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .pdf-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .pdf-card-subtitle {
+            font-size: 0.93rem;
+            opacity: 0.78;
+            margin-bottom: 1.6rem;
+        }
+        .pdf-meta-badges {
+            display: flex;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.6rem;
+        }
+        .pdf-badge {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 20px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .pdf-contents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+            gap: 0.7rem;
+            margin-bottom: 2rem;
+        }
+        .pdf-content-item {
+            background: rgba(255,255,255,0.11);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.86rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(4px);
+        }
+        .btn-gen-pdf {
+            background: white;
+            color: #0D47A1;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+            position: relative;
+            z-index: 1;
+        }
+        .btn-gen-pdf:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.28);
+            background: #e8f0fe;
+            color: #0D47A1;
+        }
+        .btn-gen-pdf:disabled {
+            opacity: 0.75;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .spin { animation: spin 1s linear infinite; display:inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+
+        /* Modal enhancements */
+        .pdf-modal-header {
+            background: linear-gradient(135deg, #0D47A1, #1976D2);
+            color: white;
+            border: none;
+            padding: 1.5rem 2rem;
+            border-radius: 0;
+        }
+        .step-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 2px solid #dee2e6;
+            background: #f8f9fa;
+            color: #6c757d;
+            transition: all 0.4s ease;
+        }
+        .step-pill.active {
+            border-color: #1976D2;
+            background: #E3F2FD;
+            color: #0D47A1;
+        }
+        .step-pill.done {
+            border-color: #4CAF50;
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        @media (max-width: 768px) {
+            .values-comparison {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            .arrow-icon { transform: rotate(90deg); }
+            .pdf-contents-grid { grid-template-columns: 1fr 1fr; }
+            .pdf-card-title { font-size: 1.2rem; }
+        }
+        @media (max-width: 480px) {
+            .pdf-contents-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/compare" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Back to Compare
+        </a>
+
+        <div class="page-header">
+            <h1><i class="bi bi-bar-chart-steps"></i> Comparison Results</h1>
+            <p class="mb-0 mt-2">
+                {% if compare_type == 'companies' %}
+                    Comparing Two Companies
+                {% else %}
+                    Comparing Two Periods - {{ analysis1.company.name }}
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Entities Being Compared -->
+        <div class="comparison-card">
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <div class="entity-box">
+                        <h4>
+                            {% if compare_type == 'companies' %}
+                                <i class="bi bi-building"></i> {{ analysis1.company.name }}
+                            {% else %}
+                                <i class="bi bi-calendar-event"></i> Period 1
+                            {% endif %}
+                        </h4>
+                        <p class="mb-2">
+                            <i class="bi bi-calendar-range"></i>
+                            {{ analysis1.financial_data.period_end.strftime('%Y-%m-%d') }}
+                        </p>
+                        <span class="badge bg-primary">Health Score: {{ analysis1.ai_analysis.get('overall', {}).get('health_score', 'N/A') }}</span>
+                    </div>
+                </div>
+                <div class="col-md-2 text-center">
+                    <span class="vs-badge">VS</span>
+                </div>
+                <div class="col-md-5">
+                    <div class="entity-box">
+                        <h4>
+                            {% if compare_type == 'companies' %}
+                                <i class="bi bi-building"></i> {{ analysis2.company.name }}
+                            {% else %}
+                                <i class="bi bi-calendar-event"></i> Period 2 (Current)
+                            {% endif %}
+                        </h4>
+                        <p class="mb-2">
+                            <i class="bi bi-calendar-range"></i>
+                            {{ analysis2.financial_data.period_end.strftime('%Y-%m-%d') }}
+                        </p>
+                        <span class="badge bg-success">Health Score: {{ analysis2.ai_analysis.get('overall', {}).get('health_score', 'N/A') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Ratio Comparison with Individual AI Analysis -->
+        <div class="comparison-card">
+            <h5 class="section-title">
+                <i class="bi bi-calculator"></i> Financial Ratios Comparison with AI Analysis
+            </h5>
+
+            {% if compare_type == 'companies' %}
+                {% set diffs = comparison.differences %}
+            {% else %}
+                {% set diffs = comparison.changes %}
+            {% endif %}
+
+            {% for ratio_name, diff_data in diffs.items() %}
+            <div class="metric-row">
+                <!-- Metric Header -->
+                <div class="metric-header">
+                    <div class="metric-name">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        {{ ratio_name }}
+                    </div>
+                    <div>
+                        {% if diff_data.trend == 'increase' or diff_data.change_direction == 'increased' %}
+                            <span class="increase-badge">
+                                <i class="bi bi-arrow-up-circle-fill"></i>
+                                Increased {{ "%.1f"|format(diff_data.percentage_change|abs) }}%
+                            </span>
+                        {% elif diff_data.trend == 'decrease' or diff_data.change_direction == 'decreased' %}
+                            <span class="decrease-badge">
+                                <i class="bi bi-arrow-down-circle-fill"></i>
+                                Decreased {{ "%.1f"|format(diff_data.percentage_change|abs) }}%
+                            </span>
+                        {% else %}
+                            <span class="stable-badge">
+                                <i class="bi bi-dash-circle-fill"></i>
+                                No Change
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Values Comparison -->
+                <div class="values-comparison">
+                    <div class="value-box">
+                        <div class="value-label">
+                            {% if compare_type == 'companies' %}
+                                {{ analysis1.company.name }}
+                            {% else %}
+                                Period 1
+                            {% endif %}
+                        </div>
+                        <div class="value-number">
+                            {% if compare_type == 'companies' %}
+                                {{ "%.2f"|format(diff_data.value1) }}
+                            {% else %}
+                                {{ "%.2f"|format(diff_data.old_value) }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="arrow-icon">
+                        {% if diff_data.trend == 'increase' or diff_data.change_direction == 'increased' %}
+                            <i class="bi bi-arrow-right-circle-fill text-success"></i>
+                        {% elif diff_data.trend == 'decrease' or diff_data.change_direction == 'decreased' %}
+                            <i class="bi bi-arrow-right-circle-fill text-danger"></i>
+                        {% else %}
+                            <i class="bi bi-arrow-right-circle-fill text-secondary"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="value-box">
+                        <div class="value-label">
+                            {% if compare_type == 'companies' %}
+                                {{ analysis2.company.name }}
+                            {% else %}
+                                Period 2
+                            {% endif %}
+                        </div>
+                        <div class="value-number {% if diff_data.get('is_improvement') %}better{% else %}worse{% endif %}">
+                            {% if compare_type == 'companies' %}
+                                {{ "%.2f"|format(diff_data.value2) }}
+                            {% else %}
+                                {{ "%.2f"|format(diff_data.new_value) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Analysis for This Specific Ratio -->
+                <div class="ai-analysis-box">
+                    <h6><i class="bi bi-robot"></i> AI Analysis for {{ ratio_name }}</h6>
+                    <p>
+                        {% if diff_data.trend == 'increase' or diff_data.change_direction == 'increased' %}
+                            <i class="bi bi-arrow-up-circle-fill improvement-icon"></i>
+                            This {{ "%.1f"|format(diff_data.percentage_change|abs) }}% <strong>increase</strong> in {{ ratio_name }}
+
+                            {% if diff_data.get('is_improvement') %}
+                                is a <strong class="text-success">positive development</strong>.
+
+                                {% if 'Ratio' in ratio_name and 'Debt' not in ratio_name %}
+                                    The company's liquidity position has strengthened, indicating better ability to meet short-term obligations.
+                                    This improvement suggests enhanced operational efficiency and potentially better cash management practices.
+                                {% elif 'Margin' in ratio_name or 'RO' in ratio_name %}
+                                    The improved profitability demonstrates stronger operational performance and better cost management.
+                                    This positive trend indicates the company is generating more profit from its operations or investments.
+                                {% elif 'Debt' in ratio_name %}
+                                    While this ratio increased, it remains within acceptable limits. Monitor future trends to ensure debt levels stay manageable.
+                                {% else %}
+                                    This improvement indicates positive momentum in the company's financial performance.
+                                {% endif %}
+
+                                <span class="impact-badge impact-low">Low Risk</span>
+                            {% else %}
+                                requires <strong class="text-warning">attention</strong>.
+
+                                {% if 'Debt' in ratio_name %}
+                                    The rising leverage indicates increased financial risk. The company is taking on more debt relative to equity,
+                                    which could strain cash flows and limit financial flexibility. Management should consider debt reduction strategies.
+                                    <span class="impact-badge impact-high">High Impact</span>
+                                {% else %}
+                                    This increase may signal potential concerns that warrant closer monitoring and possible corrective action.
+                                    <span class="impact-badge impact-medium">Medium Impact</span>
+                                {% endif %}
+                            {% endif %}
+
+                        {% elif diff_data.trend == 'decrease' or diff_data.change_direction == 'decreased' %}
+                            <i class="bi bi-arrow-down-circle-fill decline-icon"></i>
+                            This {{ "%.1f"|format(diff_data.percentage_change|abs) }}% <strong>decrease</strong> in {{ ratio_name }}
+
+                            {% if diff_data.get('is_improvement') %}
+                                is a <strong class="text-success">positive development</strong>.
+
+                                {% if 'Debt' in ratio_name %}
+                                    The reduced debt burden strengthens the company's financial position and increases its resilience to economic challenges.
+                                    Lower leverage means reduced interest obligations and improved creditworthiness, providing greater financial flexibility.
+                                    <span class="impact-badge impact-low">Positive Change</span>
+                                {% else %}
+                                    This decrease, while counterintuitive, represents an improvement in the company's financial health in this specific metric.
+                                    <span class="impact-badge impact-medium">Monitor Closely</span>
+                                {% endif %}
+
+                            {% else %}
+                                is a <strong class="text-danger">concern</strong> that needs addressing.
+
+                                {% if 'Ratio' in ratio_name and 'Debt' not in ratio_name %}
+                                    The declining liquidity suggests potential cash flow challenges. This could indicate difficulties in converting assets to cash
+                                    or increased short-term liabilities. Immediate action may be needed to improve working capital management.
+                                    <span class="impact-badge impact-high">High Priority</span>
+                                {% elif 'Margin' in ratio_name or 'RO' in ratio_name %}
+                                    The deteriorating profitability signals operational challenges or increased competition. This decline suggests the company
+                                    is generating less profit from its operations, which could indicate pricing pressures, rising costs, or inefficient operations.
+                                    Management should review cost structure and operational efficiency.
+                                    <span class="impact-badge impact-high">Critical</span>
+                                {% else %}
+                                    This declining trend warrants immediate investigation and corrective measures to prevent further deterioration.
+                                    <span class="impact-badge impact-high">Urgent</span>
+                                {% endif %}
+                            {% endif %}
+
+                        {% else %}
+                            <i class="bi bi-dash-circle-fill text-secondary"></i>
+                            The {{ ratio_name }} has <strong>remained stable</strong> between periods.
+                            This consistency suggests steady operational performance in this area. While stability is generally positive,
+                            the company should still seek opportunities for improvement to maintain competitive advantage.
+                            <span class="impact-badge impact-low">Stable</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Specific Recommendations -->
+                {% if not diff_data.get('is_improvement') and diff_data.percentage_change|abs > 5 %}
+                <div class="ai-insight-box">
+                    <h6><i class="bi bi-lightbulb-fill"></i> Recommended Actions</h6>
+                    <div>
+                        {% if 'Current Ratio' in ratio_name or 'Quick Ratio' in ratio_name %}
+                            <span class="recommendation-pill">🔄 Improve collection of accounts receivable</span>
+                            <span class="recommendation-pill">📦 Optimize inventory levels</span>
+                            <span class="recommendation-pill">💰 Negotiate better payment terms with suppliers</span>
+                            <span class="recommendation-pill">🏦 Consider short-term financing options if needed</span>
+                        {% elif 'Profit Margin' in ratio_name %}
+                            <span class="recommendation-pill">💵 Review pricing strategy</span>
+                            <span class="recommendation-pill">✂️ Implement cost reduction initiatives</span>
+                            <span class="recommendation-pill">📊 Analyze product mix profitability</span>
+                            <span class="recommendation-pill">🎯 Focus on high-margin products/services</span>
+                        {% elif 'ROE' in ratio_name or 'ROA' in ratio_name %}
+                            <span class="recommendation-pill">⚡ Improve operational efficiency</span>
+                            <span class="recommendation-pill">💼 Optimize asset utilization</span>
+                            <span class="recommendation-pill">📈 Enhance revenue generation strategies</span>
+                            <span class="recommendation-pill">🔍 Identify and eliminate underperforming assets</span>
+                        {% elif 'Debt' in ratio_name %}
+                            <span class="recommendation-pill">💳 Develop debt reduction plan</span>
+                            <span class="recommendation-pill">💪 Consider equity financing alternatives</span>
+                            <span class="recommendation-pill">🎯 Refinance high-interest debt</span>
+                            <span class="recommendation-pill">💰 Increase cash reserves</span>
+                        {% else %}
+                            <span class="recommendation-pill">📊 Conduct detailed analysis</span>
+                            <span class="recommendation-pill">👥 Consult with financial advisors</span>
+                            <span class="recommendation-pill">🔄 Implement corrective measures</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Charts -->
+        <div class="comparison-card">
+            <h5 class="section-title">
+                <i class="bi bi-graph-up"></i> Visual Comparison
+            </h5>
+            <div class="chart-container">
+                <div id="comparisonChart"></div>
+            </div>
+        </div>
+
+        <!-- ═══════════════ PDF EXPORT CARD ═══════════════ -->
+        {% if user.can_export_pdf() %}
+        <div class="pdf-export-card">
+            <div class="pdf-card-header">
+                <div class="pdf-card-title">
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                    Export Professional PDF Report
+                </div>
+            </div>
+            <p class="pdf-card-subtitle">
+                {% if compare_type == 'companies' %}
+                    Generate a complete client-ready report comparing <strong>{{ analysis1.company.name }}</strong> vs <strong>{{ analysis2.company.name }}</strong> — with charts, AI insights, and recommendations.
+                {% else %}
+                    Generate a period-over-period report for <strong>{{ analysis1.company.name }}</strong> — showing financial trends, changes, and strategic analysis.
+                {% endif %}
+            </p>
+
+            <div class="pdf-meta-badges">
+                <span class="pdf-badge"><i class="bi bi-file-richtext"></i> Multi-Page Report</span>
+                <span class="pdf-badge"><i class="bi bi-bar-chart-fill"></i> Radar & Bar Charts</span>
+                <span class="pdf-badge"><i class="bi bi-robot"></i> AI Insights</span>
+                <span class="pdf-badge"><i class="bi bi-translate"></i> English</span>
+                <span class="pdf-badge"><i class="bi bi-lock-fill"></i> Confidential</span>
+            </div>
+
+            <div class="pdf-contents-grid">
+                <div class="pdf-content-item"><i class="bi bi-award-fill"></i> Cover Page & Branding</div>
+                <div class="pdf-content-item"><i class="bi bi-pie-chart-fill"></i> Radar Comparison Chart</div>
+                <div class="pdf-content-item"><i class="bi bi-bar-chart-fill"></i> Score Comparison Bar</div>
+                <div class="pdf-content-item"><i class="bi bi-clipboard2-data-fill"></i> Executive Summary</div>
+                <div class="pdf-content-item"><i class="bi bi-calculator-fill"></i> All Ratio Comparisons</div>
+                <div class="pdf-content-item"><i class="bi bi-lightbulb-fill"></i> AI Analysis per Metric</div>
+                <div class="pdf-content-item"><i class="bi bi-trophy-fill"></i>
+                    {% if compare_type == 'companies' %}Winner Assessment{% else %}Trend Analysis{% endif %}
+                </div>
+                <div class="pdf-content-item"><i class="bi bi-shield-check"></i> Disclaimer & Footer</div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <button class="btn-gen-pdf" id="pdfExportBtn" onclick="exportToPDF()">
+                    <i class="bi bi-cloud-arrow-down-fill" id="pdfExportIcon"></i>
+                    <span id="pdfExportText">Download PDF Report</span>
+                </button>
+                <span style="opacity:0.62; font-size:0.85rem; position:relative; z-index:1;">
+                    <i class="bi bi-clock"></i> ~10–20 seconds to generate
+                </span>
+            </div>
+        </div>
+
+        <!-- Secondary Action Buttons -->
+        <div class="text-center mb-4">
+            <a href="/compare" class="btn btn-secondary btn-lg me-2" style="border-radius: 50px; padding: 0.8rem 2rem;">
+                <i class="bi bi-arrow-repeat"></i> New Comparison
+            </a>
+            <a href="/dashboard" class="btn btn-outline-secondary btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem;">
+                <i class="bi bi-house-fill"></i> Dashboard
+            </a>
+        </div>
+
+        <!-- ═══════════════ PDF MODAL ═══════════════ -->
+        <div class="modal fade" id="pdfExportModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden;">
+
+                    <div class="modal-header pdf-modal-header">
+                        <h5 class="modal-title d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                            Generating Comparison PDF Report
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                id="modalCloseBtn" style="display:none;" onclick="resetModal()"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+
+                        <!-- Loading State -->
+                        <div id="pdfLoadingState" class="text-center">
+                            <div style="font-size:4.5rem; margin-bottom:1rem; animation: pulse 1.4s ease infinite;">📊</div>
+                            <h5 class="fw-bold" style="color:#1565C0;">Building Your Report...</h5>
+                            <p class="text-muted mb-3">Rendering charts, processing AI insights, and compiling all ratio analyses.</p>
+
+                            <!-- Progress bar -->
+                            <div class="progress mb-1" style="height:10px; border-radius:10px; background:#e3f2fd;">
+                                <div id="pdfProgressBar"
+                                     class="progress-bar progress-bar-striped progress-bar-animated"
+                                     style="width:0%; background:linear-gradient(90deg,#1565C0,#42A5F5); border-radius:10px; transition:width 0.3s ease;">
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mb-4" id="pdfProgressLabel">Initializing...</small>
+
+                            <!-- Build step pills -->
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <span class="step-pill" id="step1"><i class="bi bi-pie-chart-fill"></i> Charts</span>
+                                <span class="step-pill" id="step2"><i class="bi bi-robot"></i> AI Analysis</span>
+                                <span class="step-pill" id="step3"><i class="bi bi-calculator"></i> Ratios</span>
+                                <span class="step-pill" id="step4"><i class="bi bi-file-text"></i> Pages</span>
+                                <span class="step-pill" id="step5"><i class="bi bi-check2-all"></i> Finalizing</span>
+                            </div>
+                        </div>
+
+                        <!-- Success State -->
+                        <div id="pdfSuccessState" style="display:none;" class="text-center">
+                            <div style="font-size:5rem; margin-bottom:1rem;">✅</div>
+                            <h5 class="fw-bold" style="color:#2E7D32;">Report Ready!</h5>
+                            <p class="text-muted mb-3">Your professional comparison report has been generated.</p>
+                            <div class="text-start p-3 rounded-3" style="background:#E8F5E9; border:1px solid #A5D6A7;">
+                                <strong class="d-block mb-2"><i class="bi bi-check2-all text-success"></i> Report includes:</strong>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3rem; font-size:0.88rem; color:#1B5E20;">
+                                    <span>✅ Cover Page & Branding</span>
+                                    <span>✅ Radar Comparison Chart</span>
+                                    <span>✅ Score Bar Chart</span>
+                                    <span>✅ Executive Summary</span>
+                                    <span>✅ All Ratio Comparisons</span>
+                                    <span>✅ AI Insights per Ratio</span>
+                                    <span>✅ Conclusions & Winner</span>
+                                    <span>✅ Professional Disclaimer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Error State -->
+                        <div id="pdfErrorState" style="display:none;" class="text-center">
+                            <div style="font-size:4.5rem; margin-bottom:1rem;">❌</div>
+                            <h5 class="fw-bold" style="color:#C62828;">Generation Failed</h5>
+                            <p class="text-muted" id="pdfErrorMsg">An unexpected error occurred. Please try again.</p>
+                            <div class="alert alert-warning text-start mt-3">
+                                <i class="bi bi-lightbulb"></i>
+                                <strong>Tip:</strong> Make sure both analyses contain valid financial data, then try again.
+                            </div>
+                        </div>
+
+                    </div><!-- /modal-body -->
+
+                    <div class="modal-footer border-0 px-4 pb-4" id="pdfModalFooter">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetModal()">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div><!-- /container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Generate comparison chart
+        {% if compare_type == 'companies' %}
+        const entity1Name = '{{ analysis1.company.name }}';
+        const entity2Name = '{{ analysis2.company.name }}';
+        {% else %}
+        const entity1Name = 'Period 1';
+        const entity2Name = 'Period 2';
+        {% endif %}
+
+        const ratios1 = {{ analysis1.ratios|tojson }};
+        const ratios2 = {{ analysis2.ratios|tojson }};
+
+        const keyRatios = ['Current Ratio', 'Net Profit Margin (%)', 'ROE', 'Debt to Equity'];
+
+        const trace1 = {
+            x: keyRatios,
+            y: keyRatios.map(r => ratios1[r] || 0),
+            name: entity1Name,
+            type: 'bar',
+            marker: { color: '#1976D2' }
+        };
+
+        const trace2 = {
+            x: keyRatios,
+            y: keyRatios.map(r => ratios2[r] || 0),
+            name: entity2Name,
+            type: 'bar',
+            marker: { color: '#4CAF50' }
+        };
+
+        const layout = {
+            title: 'Key Financial Ratios Comparison',
+            barmode: 'group',
+            xaxis: { title: 'Financial Ratios' },
+            yaxis: { title: 'Value' },
+            height: 400
+        };
+
+        // ── Init chart + animations safely after full page load ──
+        window.addEventListener('load', function() {
+            // Render Plotly chart safely
+            try {
+                if (typeof Plotly !== 'undefined') {
+                    Plotly.newPlot('comparisonChart', [trace1, trace2], layout, {responsive: true});
+                }
+            } catch(e) { console.warn('Chart render error:', e); }
+
+            // Card animations
+            const cards = document.querySelectorAll('.comparison-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Smooth scroll for metric rows
+        document.querySelectorAll('.metric-row').forEach(row => {
+            row.addEventListener('click', function() {
+                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+
+        // ══════════════════════════════════════════════════════
+        //  PDF EXPORT — Full implementation
+        // ══════════════════════════════════════════════════════
+        const STEPS = [
+            { id:'step1', label:'Charts',      triggerAt: 10 },
+            { id:'step2', label:'AI Analysis', triggerAt: 30 },
+            { id:'step3', label:'Ratios',      triggerAt: 55 },
+            { id:'step4', label:'Pages',       triggerAt: 75 },
+            { id:'step5', label:'Finalizing',  triggerAt: 90 },
+        ];
+        const PROGRESS_LABELS = [
+            [0,  'Initializing...'],
+            [15, 'Rendering comparison charts...'],
+            [35, 'Processing AI insights per ratio...'],
+            [60, 'Building report pages...'],
+            [80, 'Compiling final PDF...'],
+            [92, 'Almost done...'],
+        ];
+
+        function resetModal() {
+            document.getElementById('pdfLoadingState').style.display = 'block';
+            document.getElementById('pdfSuccessState').style.display = 'none';
+            document.getElementById('pdfErrorState').style.display   = 'none';
+            document.getElementById('pdfProgressBar').style.width    = '0%';
+            document.getElementById('pdfProgressLabel').textContent  = 'Initializing...';
+            document.getElementById('modalCloseBtn').style.display   = 'none';
+            document.getElementById('pdfModalFooter').innerHTML = `
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetModal()">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>`;
+            STEPS.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (el) el.className = 'step-pill';
+            });
+            window.pdfBlob = null;
+        }
+
+        function updateSteps(progress) {
+            STEPS.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (!el) return;
+                if (progress >= s.triggerAt + 8) {
+                    el.className = 'step-pill done';
+                } else if (progress >= s.triggerAt) {
+                    el.className = 'step-pill active';
+                }
+            });
+        }
+
+        function updateProgressLabel(progress) {
+            const el = document.getElementById('pdfProgressLabel');
+            let label = PROGRESS_LABELS[0][1];
+            for (const [threshold, text] of PROGRESS_LABELS) {
+                if (progress >= threshold) label = text;
+            }
+            el.textContent = label;
+        }
+
+        function exportToPDF() {
+            try {
+                const modalEl = document.getElementById('pdfExportModal');
+                if (!modalEl) { alert('Modal not found. Please refresh the page.'); return; }
+
+                // Get or create modal instance safely
+                let modal = bootstrap.Modal.getInstance(modalEl);
+                if (!modal) modal = new bootstrap.Modal(modalEl, {backdrop: 'static', keyboard: false});
+
+                resetModal();
+                modal.show();
+
+            const btn      = document.getElementById('pdfExportBtn');
+            const btnIcon  = document.getElementById('pdfExportIcon');
+            const btnText  = document.getElementById('pdfExportText');
+            btn.disabled   = true;
+            btnIcon.className = 'bi bi-hourglass-split spin';
+            btnText.textContent = 'Generating...';
+
+            const bar = document.getElementById('pdfProgressBar');
+            let progress = 0;
+
+            const ticker = setInterval(() => {
+                const step = progress < 40 ? 3 : progress < 75 ? 1.5 : 0.4;
+                progress = Math.min(progress + step, 91);
+                bar.style.width = progress + '%';
+                updateSteps(progress);
+                updateProgressLabel(progress);
+            }, 220);
+
+            const payload = {
+                type:         '{{ compare_type }}',
+                analysis1_id: {{ analysis1.id }},
+                analysis2_id: {{ analysis2.id }}
+            };
+
+            // Get CSRF token safely
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+            fetch('/api/comparison/export-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-WTFToken':  csrfToken,
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Try to parse error message from JSON response
+                    return response.json().then(errData => {
+                        throw new Error(errData.error || 'Server error ' + response.status);
+                    }).catch(() => {
+                        throw new Error('Server error ' + response.status);
+                    });
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                clearInterval(ticker);
+
+                // Finish progress bar
+                bar.style.width = '100%';
+                STEPS.forEach(s => {
+                    const el = document.getElementById(s.id);
+                    if (el) el.className = 'step-pill done';
+                });
+                document.getElementById('pdfProgressLabel').textContent = 'Complete ✓';
+
+                window.pdfBlob = blob;
+
+                setTimeout(() => {
+                    document.getElementById('pdfLoadingState').style.display = 'none';
+                    document.getElementById('pdfSuccessState').style.display = 'block';
+                    document.getElementById('modalCloseBtn').style.display   = 'block';
+
+                    document.getElementById('pdfModalFooter').innerHTML = `
+                        <button type="button" class="btn btn-success btn-lg px-4 fw-bold"
+                                onclick="downloadPDF()" style="border-radius:50px;">
+                            <i class="bi bi-cloud-arrow-down-fill me-2"></i>Download PDF
+                        </button>
+                        <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal" onclick="resetModal()">
+                            <i class="bi bi-x-circle"></i> Close
+                        </button>`;
+
+                    // Reset export button
+                    btn.disabled = false;
+                    btnIcon.className = 'bi bi-cloud-arrow-down-fill';
+                    btnText.textContent = 'Download PDF Report';
+                }, 500);
+            })
+            .catch(err => {
+                clearInterval(ticker);
+
+                document.getElementById('pdfLoadingState').style.display = 'none';
+                document.getElementById('pdfErrorState').style.display   = 'block';
+                document.getElementById('pdfErrorMsg').textContent        = err.message || 'Unexpected error.';
+                document.getElementById('modalCloseBtn').style.display   = 'block';
+
+                document.getElementById('pdfModalFooter').innerHTML = `
+                    <button type="button" class="btn btn-primary fw-bold"
+                            onclick="resetModal(); exportToPDF()">
+                        <i class="bi bi-arrow-repeat me-1"></i>Try Again
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal" onclick="resetModal()">
+                        <i class="bi bi-x-circle"></i> Close
+                    </button>`;
+
+                btn.disabled = false;
+                btnIcon.className = 'bi bi-cloud-arrow-down-fill';
+                btnText.textContent = 'Download PDF Report';
+            });
+            } catch(outerErr) {
+                console.error('exportToPDF error:', outerErr);
+                alert('Error starting export: ' + outerErr.message);
+                const btn = document.getElementById('pdfExportBtn');
+                if (btn) { btn.disabled = false; }
+            }
+        }
+
+        function downloadPDF() {
+            if (!window.pdfBlob) return;
+            const url = URL.createObjectURL(window.pdfBlob);
+            const a   = document.createElement('a');
+            a.href    = url;
+            {% if compare_type == 'companies' %}
+            a.download = 'Comparison_{{ analysis1.company.name|replace(" ","_") }}_vs_{{ analysis2.company.name|replace(" ","_") }}.pdf';
+            {% else %}
+            a.download = 'Period_Comparison_{{ analysis1.company.name|replace(" ","_") }}.pdf';
+            {% endif %}
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            setTimeout(() => {
+                const inst = bootstrap.Modal.getInstance(document.getElementById('pdfExportModal'));
+                if (inst) inst.hide();
+                setTimeout(resetModal, 400);
+            }, 800);
+        }
+
+        // Auto-reset modal on close
+        document.getElementById('pdfExportModal').addEventListener('hidden.bs.modal', resetModal);
+    </script>
+</body>
+</html>

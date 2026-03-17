@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Analysis - {{ company.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary: #1976D2;
+            --primary-dark: #0D47A1;
+            --success: #2E7D32;
+            --warning: #F57C00;
+            --danger: #C62828;
+            --excellent: #4caf50;
+            --good: #2196f3;
+            --warning-color: #ff9800;
+            --critical: #f44336;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary)) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white !important;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        /* Company Header */
+        .company-header {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .company-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .company-info {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            color: #666;
+        }
+
+        .company-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .company-info-item i {
+            color: var(--primary);
+        }
+
+        /* Health Score Card */
+        .health-score-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 20px;
+            padding: 2rem;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(25, 118, 210, 0.3);
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            border: 5px solid rgba(255,255,255,0.3);
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-top: 1rem;
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Category Section */
+        .category-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid #e0e0e0;
+        }
+
+        .category-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .category-liquidity .category-icon {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+        }
+
+        .category-profitability .category-icon {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+        }
+
+        .category-solvency .category-icon {
+            background: linear-gradient(135deg, #f44336, #c62828);
+        }
+        .category-efficiency .category-icon {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+        .category-title {
+            flex: 1;
+        }
+
+        .category-title h3 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #212121;
+        }
+
+        .category-title p {
+            margin: 0.3rem 0 0 0;
+            color: #757575;
+            font-size: 0.95rem;
+        }
+
+        /* Category Summary Box */
+        .category-summary {
+            background: linear-gradient(135deg, #f5f5f5, #fafafa);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--primary);
+        }
+
+        .category-summary h6 {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Ratio Card */
+        .ratio-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.8rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ratio-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .ratio-card:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            border-color: var(--primary);
+        }
+
+        .ratio-card.status-excellent::before {
+            background: linear-gradient(to bottom, var(--excellent), #66bb6a);
+        }
+
+        .ratio-card.status-good::before {
+            background: linear-gradient(to bottom, var(--good), #42a5f5);
+        }
+
+        .ratio-card.status-warning::before {
+            background: linear-gradient(to bottom, var(--warning-color), #ffa726);
+        }
+
+        .ratio-card.status-critical::before {
+            background: linear-gradient(to bottom, var(--critical), #ef5350);
+        }
+
+        .ratio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+        }
+
+        .ratio-title {
+            flex: 1;
+        }
+
+        .ratio-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #212121;
+            margin-bottom: 0.5rem;
+        }
+
+        .ratio-description {
+            color: #757575;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .status-badge {
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .status-badge.status-excellent {
+            background: linear-gradient(135deg, var(--excellent), #66bb6a);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .status-badge.status-good {
+            background: linear-gradient(135deg, var(--good), #42a5f5);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .status-badge.status-warning {
+            background: linear-gradient(135deg, var(--warning-color), #ffa726);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .status-badge.status-critical {
+            background: linear-gradient(135deg, var(--critical), #ef5350);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        /* Ratio Values Grid */
+        .ratio-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.2rem 0;
+        }
+
+        .value-item {
+            text-align: center;
+        }
+
+        .value-label {
+            font-size: 0.85rem;
+            color: #757575;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+        }
+
+        .value-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .optimal-range {
+            display: inline-block;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: var(--success);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Interpretation Box */
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .interpretation-box strong {
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* AI Insight Box */
+        .ai-insight-box {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--warning);
+        }
+
+        .ai-insight-box h6 {
+            color: #e65100;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ai-insight-box p {
+            color: #5d4037;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        /* Recommendations Box */
+        .recommendations-box {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--success);
+        }
+
+        .recommendations-box h6 {
+            color: #1b5e20;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations-box ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .recommendations-box li {
+            color: #2e7d32;
+            line-height: 1.7;
+            margin-bottom: 0.8rem;
+        }
+
+        .recommendations-box li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 3rem 0 2rem 0;
+        }
+
+        .btn-action {
+            padding: 1rem 2.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, var(--success), #1b5e20);
+            color: white;
+        }
+
+        .btn-outline-custom {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ── PDF Export Card ───────────────────────────────── */
+        .pdf-export-card {
+            background: linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            color: white;
+            box-shadow: 0 12px 40px rgba(13, 71, 161, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pdf-export-card::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+
+        .pdf-export-card::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; left: -40px;
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+
+        .pdf-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .pdf-card-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-bottom: 1.8rem;
+        }
+
+        .pdf-contents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .pdf-content-item {
+            background: rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .pdf-content-item i {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .btn-download-pdf {
+            background: white;
+            color: #0D47A1;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .btn-download-pdf:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.3);
+            color: #0D47A1;
+            background: #f0f7ff;
+        }
+
+        .btn-download-pdf:active {
+            transform: translateY(0);
+        }
+
+        .btn-download-pdf.loading {
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        .pdf-meta-badges {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .pdf-badge {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* PDF toast notification */
+        .pdf-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1565C0;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 350px;
+        }
+
+        .pdf-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .pdf-toast.success { background: #2E7D32; }
+        .pdf-toast.error   { background: #c62828; }
+
+        .spin-icon {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* PDF Export Card responsive */
+        @media (max-width: 768px) {
+            .pdf-contents-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .pdf-card-title { font-size: 1.2rem; }
+        }
+
+        @media (max-width: 480px) {
+            .pdf-contents-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+                padding: 1.5rem;
+            }
+
+            .company-title {
+                font-size: 1.5rem;
+            }
+
+            .category-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .ratio-values {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .navbar,
+            .action-buttons {
+                display: none !important;
+            }
+
+            .category-section {
+                page-break-inside: avoid;
+            }
+
+            .ratio-card {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .scroll-top.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="bi bi-graph-up-arrow"></i> FinAnalyzer Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/company/{{ company.id }}">
+                            <i class="bi bi-building"></i> Company Profile
+                        </a>
+                    </li>
+                    {% if not user.is_developer() %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/compare">
+                            <i class="bi bi-bar-chart-steps"></i> Compare
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Company Header -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="company-header">
+                    <h1 class="company-title">
+                        <i class="bi bi-building-fill"></i> {{ company.name }}
+                    </h1>
+                    <div class="company-info">
+                        <div class="company-info-item">
+                            <i class="bi bi-tag-fill"></i>
+                            <strong>Industry:</strong> {{ company.industry or 'N/A' }}
+                        </div>
+                        <div class="company-info-item">
+                            <i class="bi bi-calendar-range-fill"></i>
+                            <strong>Period:</strong>
+                            {{ analysis.financial_data.period_start.strftime('%Y-%m-%d') }} to
+                            {{ analysis.financial_data.period_end.strftime('%Y-%m-%d') }}
+                        </div>
+                        <div class="company-info-item">
+                            <i class="bi bi-clock-history"></i>
+                            <strong>Generated:</strong>
+                            {{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="health-score-card">
+                    <div class="score-circle">
+                        {{ analysis.ai_analysis.get('overall', {}).get('health_score', 50) }}
+                    </div>
+                    <div class="score-label">Financial Health Score</div>
+                    <div class="risk-badge">
+                        <i class="bi bi-shield-fill-check"></i>
+                        Risk Level: {{ analysis.ai_analysis.get('overall', {}).get('risk_level', 'Medium') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Liquidity Ratios -->
+        {% set individual_ratios = analysis.ai_analysis.get('individual_ratios', {}) %}
+
+        <div class="category-section category-liquidity">
+            <div class="category-header">
+                <div class="category-icon">
+                    <i class="bi bi-droplet-fill"></i>
+                </div>
+                <div class="category-title">
+                    <h3>Liquidity Ratios</h3>
+                    <p>Company's ability to meet short-term financial obligations</p>
+                </div>
+            </div>
+
+            {% set liquidity_summary = analysis.ai_analysis.get('liquidity', {}) %}
+            {% if liquidity_summary.get('summary') %}
+            <div class="category-summary">
+                <h6><i class="bi bi-info-circle-fill"></i> Overview</h6>
+                <p class="mb-0">{{ liquidity_summary.get('summary') }}</p>
+            </div>
+            {% endif %}
+
+            {% for ratio_name, ratio_data in individual_ratios.items() %}
+                {% if ratio_data.get('category') == 'liquidity' %}
+                <div class="ratio-card status-{{ ratio_data.get('status', 'good') }}">
+                    <div class="ratio-header">
+                        <div class="ratio-title">
+                            <div class="ratio-name">{{ ratio_name }}</div>
+                            <div class="ratio-description">{{ ratio_data.get('description', '') }}</div>
+                        </div>
+                        <span class="status-badge status-{{ ratio_data.get('status', 'good') }}">
+                            <i class="bi bi-{% if ratio_data.get('status') == 'excellent' %}star-fill{% elif ratio_data.get('status') == 'good' %}check-circle-fill{% elif ratio_data.get('status') == 'warning' %}exclamation-triangle-fill{% else %}x-circle-fill{% endif %}"></i>
+                            {{ ratio_data.get('status_text', 'N/A') }}
+                        </span>
+                    </div>
+
+                    <div class="ratio-values">
+                        <div class="value-item">
+                            <div class="value-label">Current Value</div>
+                            <div class="value-number">{{ "%.2f"|format(ratio_data.get('value', 0)) }}</div>
+                        </div>
+                        <div class="value-item">
+                            <div class="value-label">Optimal Range</div>
+                            <div class="optimal-range">
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[0]) }} -
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[1]) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interpretation-box">
+                        <strong><i class="bi bi-lightbulb-fill"></i> What This Means:</strong>
+                        <p class="mb-0">{{ ratio_data.get('interpretation', 'N/A') }}</p>
+                    </div>
+
+                    {% if ratio_data.get('ai_insight') %}
+                    <div class="ai-insight-box">
+                        <h6><i class="bi bi-robot"></i> AI Analysis</h6>
+                        <p>{{ ratio_data.get('ai_insight') }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if ratio_data.get('recommendations') %}
+                    <div class="recommendations-box">
+                        <h6><i class="bi bi-clipboard-check-fill"></i> Action Items</h6>
+                        <ul>
+                            {% for rec in ratio_data.get('recommendations')[:3] %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Profitability Ratios -->
+        <div class="category-section category-profitability">
+            <div class="category-header">
+                <div class="category-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="category-title">
+                    <h3>Profitability Ratios</h3>
+                    <p>Company's ability to generate profit from operations</p>
+                </div>
+            </div>
+
+            {% set profitability_summary = analysis.ai_analysis.get('profitability', {}) %}
+            {% if profitability_summary.get('summary') %}
+            <div class="category-summary">
+                <h6><i class="bi bi-info-circle-fill"></i> Overview</h6>
+                <p class="mb-0">{{ profitability_summary.get('summary') }}</p>
+            </div>
+            {% endif %}
+
+            {% for ratio_name, ratio_data in individual_ratios.items() %}
+                {% if ratio_data.get('category') == 'profitability' %}
+                <div class="ratio-card status-{{ ratio_data.get('status', 'good') }}">
+                    <div class="ratio-header">
+                        <div class="ratio-title">
+                            <div class="ratio-name">{{ ratio_name }}</div>
+                            <div class="ratio-description">{{ ratio_data.get('description', '') }}</div>
+                        </div>
+                        <span class="status-badge status-{{ ratio_data.get('status', 'good') }}">
+                            <i class="bi bi-{% if ratio_data.get('status') == 'excellent' %}star-fill{% elif ratio_data.get('status') == 'good' %}check-circle-fill{% elif ratio_data.get('status') == 'warning' %}exclamation-triangle-fill{% else %}x-circle-fill{% endif %}"></i>
+                            {{ ratio_data.get('status_text', 'N/A') }}
+                        </span>
+                    </div>
+
+                    <div class="ratio-values">
+                        <div class="value-item">
+                            <div class="value-label">Current Value</div>
+                            <div class="value-number">{{ "%.2f"|format(ratio_data.get('value', 0)) }}%</div>
+                        </div>
+                        <div class="value-item">
+                            <div class="value-label">Optimal Range</div>
+                            <div class="optimal-range">
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[0]) }}% -
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[1]) }}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interpretation-box">
+                        <strong><i class="bi bi-lightbulb-fill"></i> What This Means:</strong>
+                        <p class="mb-0">{{ ratio_data.get('interpretation', 'N/A') }}</p>
+                    </div>
+
+                    {% if ratio_data.get('ai_insight') %}
+                    <div class="ai-insight-box">
+                        <h6><i class="bi bi-robot"></i> AI Analysis</h6>
+                        <p>{{ ratio_data.get('ai_insight') }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if ratio_data.get('recommendations') %}
+                    <div class="recommendations-box">
+                        <h6><i class="bi bi-clipboard-check-fill"></i> Action Items</h6>
+                        <ul>
+                            {% for rec in ratio_data.get('recommendations')[:3] %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Solvency Ratios -->
+        <div class="category-section category-solvency">
+            <div class="category-header">
+                <div class="category-icon">
+                    <i class="bi bi-bank"></i>
+                </div>
+                <div class="category-title">
+                    <h3>Solvency & Leverage Ratios</h3>
+                    <p>Long-term financial stability and debt management capacity</p>
+                </div>
+            </div>
+
+            {% set solvency_summary = analysis.ai_analysis.get('solvency', {}) %}
+            {% if solvency_summary.get('summary') %}
+            <div class="category-summary">
+                <h6><i class="bi bi-info-circle-fill"></i> Overview</h6>
+                <p class="mb-0">{{ solvency_summary.get('summary') }}</p>
+            </div>
+            {% endif %}
+
+            {% for ratio_name, ratio_data in individual_ratios.items() %}
+                {% if ratio_data.get('category') == 'solvency' %}
+                <div class="ratio-card status-{{ ratio_data.get('status', 'good') }}">
+                    <div class="ratio-header">
+                        <div class="ratio-title">
+                            <div class="ratio-name">{{ ratio_name }}</div>
+                            <div class="ratio-description">{{ ratio_data.get('description', '') }}</div>
+                        </div>
+                        <span class="status-badge status-{{ ratio_data.get('status', 'good') }}">
+                            <i class="bi bi-{% if ratio_data.get('status') == 'excellent' %}star-fill{% elif ratio_data.get('status') == 'good' %}check-circle-fill{% elif ratio_data.get('status') == 'warning' %}exclamation-triangle-fill{% else %}x-circle-fill{% endif %}"></i>
+                            {{ ratio_data.get('status_text', 'N/A') }}
+                        </span>
+                    </div>
+
+                    <div class="ratio-values">
+                        <div class="value-item">
+                            <div class="value-label">Current Value</div>
+                            <div class="value-number">{{ "%.2f"|format(ratio_data.get('value', 0)) }}</div>
+                        </div>
+                        <div class="value-item">
+                            <div class="value-label">Optimal Range</div>
+                            <div class="optimal-range">
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[0]) }} -
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[1]) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interpretation-box">
+                        <strong><i class="bi bi-lightbulb-fill"></i> What This Means:</strong>
+                        <p class="mb-0">{{ ratio_data.get('interpretation', 'N/A') }}</p>
+                    </div>
+
+                    {% if ratio_data.get('ai_insight') %}
+                    <div class="ai-insight-box">
+                        <h6><i class="bi bi-robot"></i> AI Analysis</h6>
+                        <p>{{ ratio_data.get('ai_insight') }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if ratio_data.get('recommendations') %}
+                    <div class="recommendations-box">
+                        <h6><i class="bi bi-clipboard-check-fill"></i> Action Items</h6>
+                        <ul>
+                            {% for rec in ratio_data.get('recommendations')[:3] %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+<!-- Efficiency Ratios -->
+        <div class="category-section category-efficiency">
+            <div class="category-header">
+                <div class="category-icon">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <div class="category-title">
+                    <h3>Efficiency Ratios</h3>
+                    <p>How effectively the company uses assets and manages operations</p>
+                </div>
+            </div>
+
+            {% set efficiency_summary = analysis.ai_analysis.get('efficiency', {}) %}
+            {% if efficiency_summary.get('summary') %}
+            <div class="category-summary">
+                <h6><i class="bi bi-info-circle-fill"></i> Overview</h6>
+                <p class="mb-0">{{ efficiency_summary.get('summary') }}</p>
+            </div>
+            {% endif %}
+
+            {% for ratio_name, ratio_data in individual_ratios.items() %}
+                {% if ratio_data.get('category') == 'efficiency' %}
+                <div class="ratio-card status-{{ ratio_data.get('status', 'good') }}">
+                    <div class="ratio-header">
+                        <div class="ratio-title">
+                            <div class="ratio-name">{{ ratio_name }}</div>
+                            <div class="ratio-description">{{ ratio_data.get('description', '') }}</div>
+                        </div>
+                        <span class="status-badge status-{{ ratio_data.get('status', 'good') }}">
+                            <i class="bi bi-{% if ratio_data.get('status') == 'excellent' %}star-fill{% elif ratio_data.get('status') == 'good' %}check-circle-fill{% elif ratio_data.get('status') == 'warning' %}exclamation-triangle-fill{% else %}x-circle-fill{% endif %}"></i>
+                            {{ ratio_data.get('status_text', 'N/A') }}
+                        </span>
+                    </div>
+
+                    <div class="ratio-values">
+                        <div class="value-item">
+                            <div class="value-label">Current Value</div>
+                            <div class="value-number">{{ "%.2f"|format(ratio_data.get('value', 0)) }}</div>
+                        </div>
+                        <div class="value-item">
+                            <div class="value-label">Optimal Range</div>
+                            <div class="optimal-range">
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[0]) }} -
+                                {{ "%.2f"|format(ratio_data.get('optimal_range', [0, 0])[1]) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interpretation-box">
+                        <strong><i class="bi bi-lightbulb-fill"></i> What This Means:</strong>
+                        <p class="mb-0">{{ ratio_data.get('interpretation', 'N/A') }}</p>
+                    </div>
+
+                    {% if ratio_data.get('ai_insight') %}
+                    <div class="ai-insight-box">
+                        <h6><i class="bi bi-robot"></i> AI Analysis</h6>
+                        <p>{{ ratio_data.get('ai_insight') }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if ratio_data.get('recommendations') %}
+                    <div class="recommendations-box">
+                        <h6><i class="bi bi-clipboard-check-fill"></i> Action Items</h6>
+                        <ul>
+                            {% for rec in ratio_data.get('recommendations')[:3] %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- PDF Export Card -->
+        {% if user.can_export_pdf() %}
+        <div class="pdf-export-card">
+            <div class="pdf-card-title">
+                <i class="bi bi-file-earmark-pdf-fill"></i>
+                Export Professional PDF Report
+            </div>
+            <p class="pdf-card-subtitle">
+                Generate a complete, client-ready financial report with charts, AI insights, and strategic recommendations.
+            </p>
+
+            <div class="pdf-meta-badges">
+                <span class="pdf-badge"><i class="bi bi-file-richtext"></i> Multi-Page Report</span>
+                <span class="pdf-badge"><i class="bi bi-bar-chart-fill"></i> Embedded Charts</span>
+                <span class="pdf-badge"><i class="bi bi-robot"></i> AI Insights</span>
+                <span class="pdf-badge"><i class="bi bi-lock-fill"></i> Confidential</span>
+            </div>
+
+            <div class="pdf-contents-grid">
+                <div class="pdf-content-item"><i class="bi bi-award-fill"></i> Cover Page & Branding</div>
+                <div class="pdf-content-item"><i class="bi bi-speedometer2"></i> Health Score Dashboard</div>
+                <div class="pdf-content-item"><i class="bi bi-pie-chart-fill"></i> Visual Charts & Radar</div>
+                <div class="pdf-content-item"><i class="bi bi-clipboard2-data-fill"></i> Executive Summary</div>
+                <div class="pdf-content-item"><i class="bi bi-exclamation-triangle-fill"></i> Automated Alerts</div>
+                <div class="pdf-content-item"><i class="bi bi-graph-up-arrow"></i> Financial Overview</div>
+                <div class="pdf-content-item"><i class="bi bi-droplet-fill"></i> Liquidity Analysis</div>
+                <div class="pdf-content-item"><i class="bi bi-currency-dollar"></i> Profitability Analysis</div>
+                <div class="pdf-content-item"><i class="bi bi-bank2"></i> Solvency Analysis</div>
+                <div class="pdf-content-item"><i class="bi bi-lightbulb-fill"></i> AI Recommendations</div>
+                <div class="pdf-content-item"><i class="bi bi-table"></i> Complete Ratio Appendix</div>
+                <div class="pdf-content-item"><i class="bi bi-shield-check"></i> Disclaimer & Footer</div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <button class="btn-download-pdf" id="pdfDownloadBtn" onclick="downloadPDFReport()">
+                    <i class="bi bi-cloud-arrow-down-fill"></i>
+                    <span id="pdfBtnText">Download PDF Report</span>
+                </button>
+                <span style="opacity:0.6; font-size:0.85rem;">
+                    <i class="bi bi-clock"></i> Takes ~5–15 seconds to generate
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Other Action Buttons -->
+        <div class="action-buttons">
+            <a href="/company/{{ company.id }}" class="btn-action btn-success-custom">
+                <i class="bi bi-building-fill"></i> Company Profile
+            </a>
+            {% if not user.is_developer() %}
+            <a href="/compare" class="btn-action btn-outline-custom">
+                <i class="bi bi-bar-chart-steps"></i> Compare Analysis
+            </a>
+            {% endif %}
+            <a href="/dashboard" class="btn-action btn-outline-custom">
+                <i class="bi bi-house-fill"></i> Dashboard
+            </a>
+        </div>
+
+        <!-- PDF Toast Notification -->
+        <div class="pdf-toast" id="pdfToast">
+            <i class="bi bi-hourglass-split" id="pdfToastIcon"></i>
+            <span id="pdfToastMsg">Generating your PDF report...</span>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <div class="scroll-top" id="scrollTop">
+        <i class="bi bi-arrow-up"></i>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '0';
+                    entry.target.style.transform = 'translateY(30px)';
+                    setTimeout(() => {
+                        entry.target.style.transition = 'all 0.6s ease';
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, 100);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('.category-section, .ratio-card, .company-header, .health-score-card').forEach(element => {
+            observer.observe(element);
+        });
+
+        // Scroll to top functionality
+        const scrollTopBtn = document.getElementById('scrollTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Interactive ratio cards
+        document.querySelectorAll('.ratio-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking on a link or button
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+
+                this.style.transform = 'translateX(8px) scale(1.01)';
+                setTimeout(() => {
+                    this.style.transform = 'translateX(8px)';
+                }, 200);
+            });
+        });
+
+        // Print functionality
+        window.addEventListener('beforeprint', () => {
+            document.querySelectorAll('.ratio-card').forEach(card => {
+                card.style.pageBreakInside = 'avoid';
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + P for print
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+
+            // Ctrl/Cmd + H for home/dashboard
+            if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+                e.preventDefault();
+                window.location.href = '/dashboard';
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add tooltip functionality
+        const initTooltips = () => {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        };
+
+        // Initialize tooltips if Bootstrap tooltip is available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            initTooltips();
+        }
+
+        // Performance optimization: Lazy load images if any
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img.lazy').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // ── PDF Download ──────────────────────────────────────
+        function showToast(msg, type = 'info', icon = 'hourglass-split') {
+            const toast = document.getElementById('pdfToast');
+            const msgEl = document.getElementById('pdfToastMsg');
+            const iconEl = document.getElementById('pdfToastIcon');
+            toast.className = 'pdf-toast ' + type;
+            msgEl.textContent = msg;
+            iconEl.className = 'bi bi-' + icon;
+            toast.classList.add('show');
+        }
+
+        function hideToast(delay = 3500) {
+            setTimeout(() => {
+                document.getElementById('pdfToast').classList.remove('show');
+            }, delay);
+        }
+
+        function downloadPDFReport() {
+            const btn = document.getElementById('pdfDownloadBtn');
+            const btnText = document.getElementById('pdfBtnText');
+
+            // Loading state
+            btn.classList.add('loading');
+            btn.querySelector('i').className = 'bi bi-hourglass-split spin-icon';
+            btnText.innerHTML = 'Generating Report<span class="dots">...</span>';
+
+            showToast('⏳ Generating your PDF report — this may take a moment...', 'info', 'hourglass-split');
+
+            // Animate dots
+            let dotCount = 0;
+            const dotsInterval = setInterval(() => {
+                dotCount = (dotCount + 1) % 4;
+                const dots = document.querySelector('.dots');
+                if (dots) dots.textContent = '.'.repeat(dotCount) || '';
+            }, 400);
+
+            // Trigger download via hidden link
+            const link = document.createElement('a');
+            link.href = '/analysis/{{ analysis.id }}/download-pdf';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+
+            // Use fetch to detect completion
+            fetch('/analysis/{{ analysis.id }}/download-pdf')
+                .then(response => {
+                    if (!response.ok) throw new Error('Server error ' + response.status);
+                    return response.blob();
+                })
+                .then(blob => {
+                    clearInterval(dotsInterval);
+
+                    // Trigger download
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '{{ company.name }}_analysis_{{ analysis.id }}.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    // Success state
+                    btn.classList.remove('loading');
+                    btn.querySelector('i').className = 'bi bi-check-circle-fill';
+                    btnText.textContent = 'Report Downloaded!';
+                    showToast('✅ PDF report downloaded successfully!', 'success', 'check-circle-fill');
+                    hideToast(4000);
+
+                    // Reset button after 4s
+                    setTimeout(() => {
+                        btn.querySelector('i').className = 'bi bi-cloud-arrow-down-fill';
+                        btnText.textContent = 'Download PDF Report';
+                    }, 4000);
+                })
+                .catch(err => {
+                    clearInterval(dotsInterval);
+                    btn.classList.remove('loading');
+                    btn.querySelector('i').className = 'bi bi-exclamation-circle-fill';
+                    btnText.textContent = 'Error — Try Again';
+                    showToast('❌ Failed to generate PDF. Please try again.', 'error', 'exclamation-circle-fill');
+                    hideToast(5000);
+
+                    setTimeout(() => {
+                        btn.querySelector('i').className = 'bi bi-cloud-arrow-down-fill';
+                        btnText.textContent = 'Download PDF Report';
+                    }, 5000);
+                });
+
+            document.body.removeChild(link);
+        }
+
+        // Add hover effect enhancement
+        document.querySelectorAll('.ratio-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--primary');
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.borderColor = '#f0f0f0';
+            });
+        });
+
+        // Console log for debugging
+        console.log('%c📊 Financial Analysis View Loaded', 'font-size: 20px; font-weight: bold; color: #1976D2');
+        console.log('%c✓ Interactive features active', 'color: #4caf50');
+        console.log('%c✓ Animations enabled', 'color: #4caf50');
+        console.log('%c✓ Keyboard shortcuts ready (Ctrl+P: Print, Ctrl+H: Home)', 'color: #4caf50');
+
+        // Performance monitoring
+        window.addEventListener('load', () => {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            console.log(`%c⚡ Page loaded in ${Math.round(perfData.loadEventEnd - perfData.fetchStart)}ms`,
+                'color: #ff9800; font-weight: bold');
+        });
+
+        // Add copy functionality for values
+        document.querySelectorAll('.value-number').forEach(valueElement => {
+            valueElement.style.cursor = 'pointer';
+            valueElement.title = 'Click to copy';
+
+            valueElement.addEventListener('click', function() {
+                const value = this.textContent;
+                navigator.clipboard.writeText(value).then(() => {
+                    // Show temporary success message
+                    const originalText = this.textContent;
+                    this.textContent = '✓ Copied!';
+                    this.style.color = '#4caf50';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.color = '';
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            });
+        });
+
+        // Add expand/collapse functionality for recommendations
+        document.querySelectorAll('.recommendations-box ul').forEach(list => {
+            const items = list.querySelectorAll('li');
+            if (items.length > 3) {
+                // Hide items after the 3rd one
+                items.forEach((item, index) => {
+                    if (index >= 3) {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Add "Show more" button
+                const showMoreBtn = document.createElement('button');
+                showMoreBtn.className = 'btn btn-sm btn-outline-success mt-2';
+                showMoreBtn.innerHTML = '<i class="bi bi-chevron-down"></i> Show More';
+                showMoreBtn.onclick = function() {
+                    const isExpanded = this.textContent.includes('Less');
+                    items.forEach((item, index) => {
+                        if (index >= 3) {
+                            item.style.display = isExpanded ? 'none' : 'list-item';
+                        }
+                    });
+                    this.innerHTML = isExpanded
+                        ? '<i class="bi bi-chevron-down"></i> Show More'
+                        : '<i class="bi bi-chevron-up"></i> Show Less';
+                };
+                list.parentElement.appendChild(showMoreBtn);
+            }
+        });
+
+        // Add quick navigation
+        const addQuickNav = () => {
+            const categories = document.querySelectorAll('.category-section');
+            if (categories.length > 0) {
+                const nav = document.createElement('div');
+                nav.style.cssText = `
+                    position: fixed;
+                    right: 2rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: white;
+                    padding: 1rem;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    z-index: 998;
+                    display: none;
+                `;
+                nav.id = 'quickNav';
+
+                categories.forEach((category, index) => {
+                    const btn = document.createElement('button');
+                    btn.style.cssText = `
+                        display: block;
+                        width: 40px;
+                        height: 40px;
+                        margin: 0.5rem 0;
+                        border: none;
+                        border-radius: 50%;
+                        background: #e0e0e0;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 1.2rem;
+                    `;
+
+                    const icons = ['💧', '📈', '🏦'];
+                    btn.textContent = icons[index] || '📊';
+                    btn.title = category.querySelector('h3').textContent;
+
+                    btn.addEventListener('click', () => {
+                        category.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+
+                    btn.addEventListener('mouseenter', function() {
+                        this.style.background = '#1976D2';
+                        this.style.transform = 'scale(1.1)';
+                    });
+
+                    btn.addEventListener('mouseleave', function() {
+                        this.style.background = '#e0e0e0';
+                        this.style.transform = 'scale(1)';
+                    });
+
+                    nav.appendChild(btn);
+                });
+
+                document.body.appendChild(nav);
+
+                // Show/hide based on scroll
+                window.addEventListener('scroll', () => {
+                    if (window.pageYOffset > 500) {
+                        nav.style.display = 'block';
+                    } else {
+                        nav.style.display = 'none';
+                    }
+                });
+            }
+        };
+
+        // Initialize quick navigation on desktop only
+        if (window.innerWidth > 992) {
+            addQuickNav();
+        }
+
+        // Progress indicator
+        const addProgressIndicator = () => {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 4px;
+                background: linear-gradient(90deg, #1976D2, #0D47A1);
+                z-index: 9999;
+                transition: width 0.1s ease;
+            `;
+            document.body.appendChild(indicator);
+
+            window.addEventListener('scroll', () => {
+                const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (window.pageYOffset / windowHeight) * 100;
+                indicator.style.width = scrolled + '%';
+            });
+        };
+
+        addProgressIndicator();
+
+        // Add fade-in animation for initial load
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+    </script>
+
+    <!-- ===== AI CHAT ASSISTANT WIDGET ===== -->
+    <style>
+        /* ── Floating toggle button ── */
+        #chatToggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border: none;
+            box-shadow: 0 6px 20px rgba(25,118,210,0.45);
+            font-size: 1.6rem;
+            cursor: pointer;
+            z-index: 1100;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #chatToggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 28px rgba(25,118,210,0.55);
+        }
+        #chatToggle .chat-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: #e53935;
+            border-radius: 50%;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Chat window ── */
+        #chatWindow {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            width: 380px;
+            max-width: calc(100vw - 2rem);
+            height: 520px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            z-index: 1100;
+            overflow: hidden;
+            transform: scale(0.85) translateY(30px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.25s ease;
+        }
+        #chatWindow.open {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* header */
+        .chat-header {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .chat-header-avatar {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .chat-header-info { flex: 1; }
+        .chat-header-info strong { font-size: 0.95rem; display: block; }
+        .chat-header-info small { font-size: 0.75rem; opacity: 0.85; }
+        .chat-status-dot {
+            width: 8px; height: 8px;
+            background: #69f0ae;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        .btn-chat-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+        .btn-chat-close:hover { color: white; }
+
+        /* messages area */
+        #chatMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8fafc;
+            scroll-behavior: smooth;
+        }
+        #chatMessages::-webkit-scrollbar { width: 4px; }
+        #chatMessages::-webkit-scrollbar-track { background: transparent; }
+        #chatMessages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        .chat-bubble-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            margin-bottom: 0.75rem;
+            animation: bubbleFadeIn 0.3s ease;
+        }
+        @keyframes bubbleFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .chat-bubble-row.user { flex-direction: row-reverse; }
+        .chat-avatar-sm {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .avatar-ai  { background: #E3F2FD; color: #1976D2; }
+        .avatar-usr { background: #E8F5E9; color: #2E7D32; }
+        .chat-bubble {
+            max-width: 82%;
+            padding: 0.65rem 0.9rem;
+            border-radius: 14px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .bubble-ai {
+            background: white;
+            color: #212121;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .bubble-user {
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* suggested questions */
+        .chat-suggestions {
+            padding: 0 1rem 0.5rem;
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            background: #f8fafc;
+        }
+        .suggestion-chip {
+            background: #E3F2FD;
+            color: #1565C0;
+            border: 1px solid #90CAF9;
+            border-radius: 20px;
+            padding: 0.25rem 0.7rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .suggestion-chip:hover {
+            background: #1976D2;
+            color: white;
+            border-color: #1976D2;
+        }
+
+        /* input area */
+        .chat-input-area {
+            padding: 0.8rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            background: white;
+        }
+        #chatInput {
+            flex: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 0.55rem 0.9rem;
+            font-size: 0.875rem;
+            resize: none;
+            max-height: 100px;
+            outline: none;
+            transition: border-color 0.2s ease;
+            font-family: inherit;
+        }
+        #chatInput:focus { border-color: #1976D2; }
+        #chatSendBtn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1976D2, #0D47A1);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            flex-shrink: 0;
+        }
+        #chatSendBtn:hover:not(:disabled) { transform: scale(1.1); }
+        #chatSendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px;
+            background: white;
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .typing-dot {
+            width: 6px; height: 6px;
+            background: #90CAF9;
+            border-radius: 50%;
+            animation: typingBounce 1.2s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        @media (max-width: 480px) {
+            #chatWindow { right: 0.5rem; bottom: 5rem; width: calc(100vw - 1rem); }
+            #chatToggle { right: 1rem; bottom: 1rem; }
+        }
+    </style>
+
+    <!-- Toggle Button -->
+    <button id="chatToggle" title="AI Financial Assistant" onclick="toggleChat()">
+        <i class="bi bi-robot"></i>
+        <span class="chat-badge" id="chatBadge">1</span>
+    </button>
+
+    <!-- Chat Window -->
+    <div id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-avatar"><i class="bi bi-robot"></i></div>
+            <div class="chat-header-info">
+                <strong>AI Financial Assistant</strong>
+                <small><span class="chat-status-dot"></span>Ready to help • {{ company.name }}</small>
+            </div>
+            <button class="btn-chat-close" onclick="toggleChat()" title="Close"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div id="chatMessages">
+            <!-- Welcome message -->
+            <div class="chat-bubble-row">
+                <div class="chat-avatar-sm avatar-ai">🤖</div>
+                <div class="chat-bubble bubble-ai">
+                    مرحباً! أنا مساعدك المالي الذكي لتحليل <strong>{{ company.name }}</strong>.<br><br>
+                    يمكنني مساعدتك في فهم النتائج وأسباب أي مؤشر وأولويات التحسين. اسأل بالعربية أو الإنجليزية! 💡
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Questions -->
+        <div class="chat-suggestions" id="chatSuggestions">
+            <button class="suggestion-chip" onclick="sendSuggestion(this)">لماذا انخفض ROE؟</button>
+            <button class="suggestion-chip" onclick="sendSuggestion(this)">ما أولويات التحسين؟</button>
+            <button class="suggestion-chip" onclick="sendSuggestion(this)">هل الشركة في خطر؟</button>
+            <button class="suggestion-chip" onclick="sendSuggestion(this)">Explain the health score</button>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea id="chatInput" placeholder="اسأل عن أي مؤشر أو نتيجة..." rows="1"
+                      onkeydown="handleChatKey(event)" oninput="autoResizeInput(this)"></textarea>
+            <button id="chatSendBtn" onclick="sendChatMessage()" title="Send"><i class="bi bi-send-fill"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // ── Chat State ───────────────────────────────────────
+        const ANALYSIS_ID = {{ analysis.id }};
+        let chatHistory   = [];
+        let isChatOpen    = false;
+        let isWaiting     = false;
+
+        function toggleChat() {
+            isChatOpen = !isChatOpen;
+            const win   = document.getElementById('chatWindow');
+            const badge = document.getElementById('chatBadge');
+            const icon  = document.querySelector('#chatToggle i');
+
+            if (isChatOpen) {
+                win.classList.add('open');
+                icon.className = 'bi bi-x-lg';
+                badge.style.display = 'none';
+                setTimeout(() => document.getElementById('chatInput').focus(), 300);
+            } else {
+                win.classList.remove('open');
+                icon.className = 'bi bi-robot';
+            }
+        }
+
+        function autoResizeInput(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+        }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        function sendSuggestion(btn) {
+            document.getElementById('chatInput').value = btn.textContent.trim();
+            document.getElementById('chatSuggestions').style.display = 'none';
+            sendChatMessage();
+        }
+
+        function appendBubble(role, text) {
+            const container = document.getElementById('chatMessages');
+
+            const row = document.createElement('div');
+            row.className = `chat-bubble-row ${role === 'user' ? 'user' : ''}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `chat-avatar-sm ${role === 'user' ? 'avatar-usr' : 'avatar-ai'}`;
+            avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${role === 'user' ? 'bubble-user' : 'bubble-ai'}`;
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+            return bubble;
+        }
+
+        function showTyping() {
+            const container = document.getElementById('chatMessages');
+            const row = document.createElement('div');
+            row.className = 'chat-bubble-row';
+            row.id = 'typingRow';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'chat-avatar-sm avatar-ai';
+            avatar.textContent = '🤖';
+
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+            row.appendChild(avatar);
+            row.appendChild(indicator);
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('typingRow');
+            if (el) el.remove();
+        }
+
+        async function sendChatMessage() {
+            if (isWaiting) return;
+            const input   = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSendBtn');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Show user bubble
+            appendBubble('user', message);
+            chatHistory.push({ role: 'user', content: message });
+
+            input.value = '';
+            input.style.height = 'auto';
+            isWaiting = true;
+            sendBtn.disabled = true;
+
+            showTyping();
+
+            try {
+                const resp = await fetch(`/api/analysis/${ANALYSIS_ID}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ message, history: chatHistory.slice(-10) })
+                });
+
+                removeTyping();
+
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    appendBubble('assistant', `⚠️ ${err.error || 'حدث خطأ. حاول مرة أخرى.'}`);
+                } else {
+                    const data = await resp.json();
+                    const reply = data.reply || '...';
+                    appendBubble('assistant', reply);
+                    chatHistory.push({ role: 'assistant', content: reply });
+                }
+            } catch (err) {
+                removeTyping();
+                appendBubble('assistant', '⚠️ لا يمكن الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.');
+            } finally {
+                isWaiting = false;
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        }
+
+        // Show badge after 3 seconds to draw attention
+        setTimeout(() => {
+            if (!isChatOpen) {
+                const badge = document.getElementById('chatBadge');
+                badge.style.display = 'flex';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
