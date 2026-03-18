@@ -131,11 +131,9 @@ def migrate():
         print("   D:\\AnasPython\\finanalyzer.db")
         print("   D:\\AnasPython - Copy\\instance\\finanalyzer.db")
         print("   D:\\AnasPython - Copy\\finanalyzer.db")
-        print("\n💡 Please enter the full path manually:")
-        DB_PATH = input("   Path: ").strip().strip('"').strip("'")
-        if not os.path.exists(DB_PATH):
-            print(f"❌ Still not found: {DB_PATH}")
-            return
+        print("❌ Database not found, creating new one...")
+        DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'finanalyzer.db')
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
     print(f"✅ Found database at: {DB_PATH}")
     print("=" * 50)
