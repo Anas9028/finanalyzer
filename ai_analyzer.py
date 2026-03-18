@@ -489,7 +489,7 @@ class AIAnalyzer:
                     'type': 'below_threshold',
                     'message': f"{name} is critically low at {value:.2f} (threshold: {low_threshold})",
                     'industry_benchmark': f"{opt_min:.2f} – {opt_max:.2f}",
-                    'gap': f"{((opt_min - value) / opt_min * 100):.1f}% below industry minimum",
+                    'gap': f"{((opt_min - value) / opt_min * 100):.1f}% below industry minimum" if opt_min != 0 else f"{abs(value - opt_min):.2f} below industry minimum",
                     'action': self._get_alert_action(name, 'low', value, industry),
                     'category': config.get('category', 'other')
                 }
@@ -502,7 +502,7 @@ class AIAnalyzer:
                     'type': 'above_threshold',
                     'message': f"{name} is unusually high at {value:.2f} – may indicate inefficiency",
                     'industry_benchmark': f"{opt_min:.2f} – {opt_max:.2f}",
-                    'gap': f"{((value - opt_max) / opt_max * 100):.1f}% above industry maximum",
+                    'gap': f"{((value - opt_max) / opt_max * 100):.1f}% above industry maximum" if opt_max != 0 else f"{abs(value - opt_max):.2f} above industry maximum",
                     'action': self._get_alert_action(name, 'high', value, industry),
                     'category': config.get('category', 'other')
                 }
@@ -516,7 +516,7 @@ class AIAnalyzer:
                     'type': 'above_threshold',
                     'message': f"{name} is dangerously high at {value:.2f} (threshold: {high_threshold})",
                     'industry_benchmark': f"{opt_min:.2f} – {opt_max:.2f}",
-                    'gap': f"{((value - opt_max) / opt_max * 100):.1f}% above safe range",
+                    'gap': f"{((value - opt_max) / opt_max * 100):.1f}% above safe range" if opt_max != 0 else f"{abs(value - opt_max):.2f} above safe range",
                     'action': self._get_alert_action(name, 'high_inverse', value, industry),
                     'category': config.get('category', 'other')
                 }

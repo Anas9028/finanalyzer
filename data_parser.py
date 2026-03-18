@@ -100,7 +100,7 @@ class DataParser:
                             print(f"      ✓ Accounts Receivable: {data.get('accounts receivable')}")
 
                         # Liabilities
-                        if 'total liabilities' in row_label or 'total liabilit' in row_label:
+                        if ('total liabilities' in row_label or 'total liabilit' in row_label) and 'equity' not in row_label:
                             data['total liabilities'] = pd.to_numeric(row[6], errors='coerce')
                             print(f"      ✓ Total Liabilities: {data.get('total liabilities')}")
 
