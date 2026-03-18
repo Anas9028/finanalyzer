@@ -32,7 +32,12 @@ app = Flask(__name__)
 
 # ── Security Configuration ──────────────────────────────
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(32))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finanalyzer.db'
+# Use PostgreSQL on Railway (DATABASE_URL), fallback to SQLite locally
+_db_url = os.environ.get('DATABASE_URL', 'sqlite:///finanalyzer.db')
+# Railway returns postgres:// but SQLAlchemy needs postgresql://
+if _db_url.startswith('postgres://'):
+    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024   # 16 MB
@@ -150,23 +155,15 @@ def inject_lang():
 
 # ── Audit Log helper ─────────────────────────────────────
 def log_audit(action: str, entity_type: str = None, entity_id: int = None,
-              entity_name: str = None, details: dict = None,
-              _user_id: int = None, _username: str = None, _ip: str = None):
+              entity_name: str = None, details: dict = None):
     """
     Write a structured audit record to the audit_log table.
-    Can be called from request context OR background threads (pass _user_id, _username, _ip).
+    Must be called BEFORE db.session.commit() in the same request.
     """
     try:
-        # Use passed values (background thread) or fall back to request context
-        try:
-            uid   = _user_id   if _user_id   is not None else session.get('user_id')
-            uname = _username  if _username  is not None else session.get('username', 'system')
-            ip    = _ip        if _ip        is not None else request.remote_addr
-        except RuntimeError:
-            # Outside request context entirely
-            uid   = _user_id
-            uname = _username or 'system'
-            ip    = _ip or 'background'
+        uid   = session.get('user_id')
+        uname = session.get('username', 'system')
+        ip    = request.remote_addr
         entry = AuditLog(
             user_id     = uid,
             username    = uname,
@@ -1329,9 +1326,6 @@ def upload_financial_data(company_id):
                         db.session.add(_analysis)
 
                         _comp_name = db.session.get(Company, cid).name
-                        # Get username for audit log (no request context in background thread)
-                        _bg_user = db.session.get(User, uid)
-                        _bg_uname = _bg_user.username if _bg_user else 'system'
                         log_audit('UPLOAD_DATA', entity_type='Analysis',
                                   entity_id=_analysis.id,
                                   entity_name=_comp_name,
@@ -1339,8 +1333,7 @@ def upload_financial_data(company_id):
                                       'period_start':     str(_data.get('from date')),
                                       'period_end':       str(_data.get('to date')),
                                       'financial_data_id': _fd.id
-                                  },
-                                  _user_id=uid, _username=_bg_uname, _ip='background')
+                                  })
                         db.session.commit()
 
                         security_logger.info(
