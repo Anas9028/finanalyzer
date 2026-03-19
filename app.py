@@ -32,12 +32,7 @@ app = Flask(__name__)
 
 # ── Security Configuration ──────────────────────────────
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(32))
-# Use PostgreSQL on Railway (DATABASE_URL), fallback to SQLite locally
-_db_url = os.environ.get('DATABASE_URL', 'sqlite:///finanalyzer.db')
-# Railway returns postgres:// but SQLAlchemy needs postgresql://
-if _db_url.startswith('postgres://'):
-    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finanalyzer.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024   # 16 MB
@@ -2259,41 +2254,39 @@ csrf.exempt(analysis_chat)
 
 with app.app_context():
     db.create_all()
+    print("=" * 60)
+    print("✅ Database tables created successfully")
+    print("=" * 60)
+    try:
+        admin = db.session.execute(
+            db.select(User).filter_by(username='admin')
+        ).scalar_one_or_none()
+        if not admin:
+            hashed_password = bcrypt.generate_password_hash('Admin@1234').decode('utf-8')
+            admin = User(
+                username='admin',
+                email='admin@finanalyzer.com',
+                full_name='System Administrator',
+                password_hash=hashed_password,
+                is_admin=True,
+                role='developer'
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("\n✅ Developer user created successfully!")
+            print("   👤 Username : admin")
+            print("   🔑 Password : Admin@1234")
+            print("   🎭 Role     : Developer (full access)")
+            print("   ⚠️  Please change the default password after first login!")
+        else:
+            print("\n✅ Developer user already exists")
+    except Exception as e:
+        print(f"\n⚠️ Error creating admin user: {e}")
+        db.session.rollback()
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print("=" * 60)
-        print("✅ Database tables created successfully")
-        print("=" * 60)
-
-        try:
-            admin = db.session.execute(
-                db.select(User).filter_by(username='admin')
-            ).scalar_one_or_none()
-
-            if not admin:
-                hashed_password = bcrypt.generate_password_hash('Admin@1234').decode('utf-8')
-                admin = User(
-                    username='admin',
-                    email='admin@finanalyzer.com',
-                    full_name='System Administrator',
-                    password_hash=hashed_password,
-                    is_admin=True,
-                    role='developer'
-                )
-                db.session.add(admin)
-                db.session.commit()
-                print("\n✅ Developer user created successfully!")
-                print("   👤 Username : admin")
-                print("   🔑 Password : Admin@1234")
-                print("   🎭 Role     : Developer (full access)")
-                print("   ⚠️  Please change the default password after first login!")
-            else:
-                print("\n✅ Developer user already exists")
-        except Exception as e:
-            print(f"\n⚠️ Error creating admin user: {e}")
-            db.session.rollback()
 
     print("\n" + "=" * 60)
     print("🚀 Starting FinAnalyzer Pro - AI Financial Analysis System")
